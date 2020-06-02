@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="5e0a8480-5595-4fae-b2c2-a88410ce5135" name="Default Changelist" comment="" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/Assets/Mirror/Runtime/NetworkBehaviour.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/Scripts/Map/ChunkData.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/3E5B618A-479D-450D-9629-81F98615C324/ca/51d8c2c0/Canvas.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/Scripts/Map/ChunkSlice.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/Mirror/Runtime/NetworkWriterPool.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/814BD9A1-1538-4360-9098-E1F5491F0282/1e/a7299021/Queue`1.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/Scripts/Map/Perlin.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/Scripts/Client/ChunkLoaderSystem.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/Mirror/Runtime/NetworkConnection.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/Scripts/PlayerInputSystem.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/437BA245-D840-4784-B9FB-AB9B439AC908/9e/72add0b5/ThrowHelper.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/437BA245-D840-4784-B9FB-AB9B439AC908/c1/31dbeb08/List`1.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/Scripts/Server/PlayerConnectionInfo.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/Scripts/TerrainGenerator.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/Scripts/GameNetworkManager.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/Scripts/Client/RenderChunkPart.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/Scripts/GameSettings.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/Scripts/Map/WorldHolder.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/Scripts/Client/ChunkMesh.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/Mirror/Runtime/NetworkClient.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/Scripts/Client/ChunkViewRenderer.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/Scripts/Client/WorldRenderSystem.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/Scripts/Server/ServerChunkLoader.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/Scripts/Server/ChunkGeneratorSystem.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/Mirror/Runtime/NetworkServer.cs" root0="FORCE_HIGHLIGHTING" />
+  </component>
+  <component name="IdeDocumentHistory">
+    <option name="CHANGED_PATHS">
+      <list>
+        <option value="$PROJECT_DIR$/Assets/Scenes/MeshComplexParallel.cs" />
+        <option value="$PROJECT_DIR$/Assets/Scripts/NewBehaviourScript.cs" />
+        <option value="$PROJECT_DIR$/Assets/Scripts/GameSettings.cs" />
+        <option value="$PROJECT_DIR$/Assets/Scripts/Map/Perlin.cs" />
+        <option value="$PROJECT_DIR$/Assets/Scripts/Server/ChunkGeneratorSystem.cs" />
+        <option value="$PROJECT_DIR$/Assets/Scripts/Server/PlayerConnectionInfo.cs" />
+        <option value="$PROJECT_DIR$/Assets/Mirror/Runtime/NetworkServer.cs" />
+        <option value="$PROJECT_DIR$/Assets/Scripts/Map/ChunkLoaderSystem.cs" />
+        <option value="$PROJECT_DIR$/Assets/Scripts/GameNetworkManager.cs" />
+        <option value="$PROJECT_DIR$/Assets/Scripts/Client/WorldRenderSystem.cs" />
+        <option value="$PROJECT_DIR$/Assets/Scripts/Client/ChunkMesh.cs" />
+        <option value="$PROJECT_DIR$/Assets/Scripts/Client/ChunkViewRenderer.cs" />
+        <option value="$PROJECT_DIR$/Assets/Scripts/Client/RenderChunkPart.cs" />
+        <option value="$PROJECT_DIR$/Assets/Scripts/Map/ChunkSlice.cs" />
+        <option value="$PROJECT_DIR$/Assets/Scripts/TerrainGenerator.cs" />
+        <option value="$PROJECT_DIR$/Assets/Scripts/Server/ServerChunkLoader.cs" />
+        <option value="$PROJECT_DIR$/Assets/Scripts/Map/WorldHolder.cs" />
+        <option value="$PROJECT_DIR$/Assets/Scripts/Client/ChunkLoaderSystem.cs" />
+        <option value="$PROJECT_DIR$/Assets/Scripts/PlayerInputSystem.cs" />
+      </list>
+    </option>
+  </component>
+  <component name="ProjectId" id="1cANYOzke4T5coSreWzZojKqfCp" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="DebuggerViewTab_PTCS_FirstProportionKey" value="0.34975636" />
+    <property name="DebuggerViewTab_PTCS_LastProportionKey" value="0.29994586" />
+    <property name="Discover.Launch.Via.Unity" value="true" />
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="threadsIsVisibleKey" value="false" />
+  </component>
+  <component name="RunManager" selected="Attach to Unity Editor.Attach to Unity Editor">
+    <configuration name="Attach to Unity Editor &amp; Play" type="UNITY_DEBUG_RUN_CONFIGURATION" factoryName="UNITY_ATTACH_AND_PLAY" show_console_on_std_err="false" show_console_on_std_out="false" port="50000" address="localhost">
+      <option name="allowRunningInParallel" value="false" />
+      <option name="listenPortForConnections" value="false" />
+      <option name="pid" />
+      <method v="2" />
+    </configuration>
+    <configuration name="Attach to Unity Editor" type="UNITY_DEBUG_RUN_CONFIGURATION" factoryName="Unity Debug" show_console_on_std_err="false" show_console_on_std_out="false" port="50000" address="localhost">
+      <option name="allowRunningInParallel" value="false" />
+      <option name="listenPortForConnections" value="false" />
+      <option name="pid" />
+      <method v="2" />
+    </configuration>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="5e0a8480-5595-4fae-b2c2-a88410ce5135" name="Default Changelist" comment="" />
+      <created>1589967486855</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1589967486855</updated>
+      <workItem from="1589967522196" duration="1129000" />
+      <workItem from="1590152629854" duration="149000" />
+      <workItem from="1590949797682" duration="583000" />
+      <workItem from="1590954263399" duration="14543000" />
+      <workItem from="1591079571852" duration="141000" />
+    </task>
+    <servers />
+  </component>
+  <component name="UnityProjectConfiguration" hasMinimizedUI="true" />
+  <component name="UnityUnitTestConfiguration" currentTestLauncher="EditMode" />
+  <component name="VcsManagerConfiguration">
+    <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="807" y="422" key="#xdebugger.evaluate" timestamp="1590995289242">
+      <screen x="0" y="0" width="1920" height="1080" />
+    </state>
+    <state x="807" y="422" key="#xdebugger.evaluate/307.1080.1440.900/0.0.1920.1080@0.0.1920.1080" timestamp="1590995289242" />
+    <state width="1878" height="403" key="GridCell.Tab.0.bottom" timestamp="1591077856674">
+      <screen x="47" y="23" width="1873" height="1057" />
+    </state>
+    <state width="1878" height="403" key="GridCell.Tab.0.bottom/307.1080.1440.900/0.0.1920.1080@0.0.1920.1080" timestamp="1591077450153" />
+    <state width="1878" height="403" key="GridCell.Tab.0.bottom/307.1103.1440.877/47.23.1873.1057@47.23.1873.1057" timestamp="1591077856674" />
+    <state width="1878" height="403" key="GridCell.Tab.0.center" timestamp="1591077856667">
+      <screen x="47" y="23" width="1873" height="1057" />
+    </state>
+    <state width="1878" height="403" key="GridCell.Tab.0.center/307.1080.1440.900/0.0.1920.1080@0.0.1920.1080" timestamp="1591077450149" />
+    <state width="1878" height="403" key="GridCell.Tab.0.center/307.1103.1440.877/47.23.1873.1057@47.23.1873.1057" timestamp="1591077856667" />
+    <state width="1878" height="403" key="GridCell.Tab.0.left" timestamp="1591077856664">
+      <screen x="47" y="23" width="1873" height="1057" />
+    </state>
+    <state width="1878" height="403" key="GridCell.Tab.0.left/307.1080.1440.900/0.0.1920.1080@0.0.1920.1080" timestamp="1591077450147" />
+    <state width="1878" height="403" key="GridCell.Tab.0.left/307.1103.1440.877/47.23.1873.1057@47.23.1873.1057" timestamp="1591077856664" />
+    <state width="1878" height="403" key="GridCell.Tab.0.right" timestamp="1591077856671">
+      <screen x="47" y="23" width="1873" height="1057" />
+    </state>
+    <state width="1878" height="403" key="GridCell.Tab.0.right/307.1080.1440.900/0.0.1920.1080@0.0.1920.1080" timestamp="1591077450151" />
+    <state width="1878" height="403" key="GridCell.Tab.0.right/307.1103.1440.877/47.23.1873.1057@47.23.1873.1057" timestamp="1591077856671" />
+    <state width="1878" height="403" key="GridCell.Tab.1.bottom" timestamp="1591077891248">
+      <screen x="47" y="23" width="1873" height="1057" />
+    </state>
+    <state width="1878" height="403" key="GridCell.Tab.1.bottom/307.1080.1440.900/0.0.1920.1080@0.0.1920.1080" timestamp="1591077448417" />
+    <state width="1878" height="403" key="GridCell.Tab.1.bottom/307.1103.1440.877/47.23.1873.1057@47.23.1873.1057" timestamp="1591077891248" />
+    <state width="1878" height="403" key="GridCell.Tab.1.center" timestamp="1591077891246">
+      <screen x="47" y="23" width="1873" height="1057" />
+    </state>
+    <state width="1878" height="403" key="GridCell.Tab.1.center/307.1080.1440.900/0.0.1920.1080@0.0.1920.1080" timestamp="1591077448349" />
+    <state width="1878" height="403" key="GridCell.Tab.1.center/307.1103.1440.877/47.23.1873.1057@47.23.1873.1057" timestamp="1591077891246" />
+    <state width="1878" height="403" key="GridCell.Tab.1.left" timestamp="1591077891245">
+      <screen x="47" y="23" width="1873" height="1057" />
+    </state>
+    <state width="1878" height="403" key="GridCell.Tab.1.left/307.1080.1440.900/0.0.1920.1080@0.0.1920.1080" timestamp="1591077448328" />
+    <state width="1878" height="403" key="GridCell.Tab.1.left/307.1103.1440.877/47.23.1873.1057@47.23.1873.1057" timestamp="1591077891245" />
+    <state width="1878" height="403" key="GridCell.Tab.1.right" timestamp="1591077891247">
+      <screen x="47" y="23" width="1873" height="1057" />
+    </state>
+    <state width="1878" height="403" key="GridCell.Tab.1.right/307.1080.1440.900/0.0.1920.1080@0.0.1920.1080" timestamp="1591077448375" />
+    <state width="1878" height="403" key="GridCell.Tab.1.right/307.1103.1440.877/47.23.1873.1057@47.23.1873.1057" timestamp="1591077891247" />
+    <state width="1878" height="403" key="GridCell.Tab.2.bottom" timestamp="1591077856129">
+      <screen x="47" y="23" width="1873" height="1057" />
+    </state>
+    <state width="1878" height="403" key="GridCell.Tab.2.bottom/307.1080.1440.900/0.0.1920.1080@0.0.1920.1080" timestamp="1591077448444" />
+    <state width="1878" height="403" key="GridCell.Tab.2.bottom/307.1103.1440.877/47.23.1873.1057@47.23.1873.1057" timestamp="1591077856129" />
+    <state width="1878" height="403" key="GridCell.Tab.2.center" timestamp="1591077856127">
+      <screen x="47" y="23" width="1873" height="1057" />
+    </state>
+    <state width="1878" height="403" key="GridCell.Tab.2.center/307.1080.1440.900/0.0.1920.1080@0.0.1920.1080" timestamp="1591077448435" />
+    <state width="1878" height="403" key="GridCell.Tab.2.center/307.1103.1440.877/47.23.1873.1057@47.23.1873.1057" timestamp="1591077856127" />
+    <state width="1878" height="403" key="GridCell.Tab.2.left" timestamp="1591077856116">
+      <screen x="47" y="23" width="1873" height="1057" />
+    </state>
+    <state width="1878" height="403" key="GridCell.Tab.2.left/307.1080.1440.900/0.0.1920.1080@0.0.1920.1080" timestamp="1591077448426" />
+    <state width="1878" height="403" key="GridCell.Tab.2.left/307.1103.1440.877/47.23.1873.1057@47.23.1873.1057" timestamp="1591077856116" />
+    <state width="1878" height="403" key="GridCell.Tab.2.right" timestamp="1591077856128">
+      <screen x="47" y="23" width="1873" height="1057" />
+    </state>
+    <state width="1878" height="403" key="GridCell.Tab.2.right/307.1080.1440.900/0.0.1920.1080@0.0.1920.1080" timestamp="1591077448442" />
+    <state width="1878" height="403" key="GridCell.Tab.2.right/307.1103.1440.877/47.23.1873.1057@47.23.1873.1057" timestamp="1591077856128" />
+    <state width="1878" height="403" key="GridCell.Tab.3.bottom" timestamp="1591077856135">
+      <screen x="47" y="23" width="1873" height="1057" />
+    </state>
+    <state width="1878" height="403" key="GridCell.Tab.3.bottom/307.1080.1440.900/0.0.1920.1080@0.0.1920.1080" timestamp="1591077448453" />
+    <state width="1878" height="403" key="GridCell.Tab.3.bottom/307.1103.1440.877/47.23.1873.1057@47.23.1873.1057" timestamp="1591077856135" />
+    <state width="1878" height="403" key="GridCell.Tab.3.center" timestamp="1591077856132">
+      <screen x="47" y="23" width="1873" height="1057" />
+    </state>
+    <state width="1878" height="403" key="GridCell.Tab.3.center/307.1080.1440.900/0.0.1920.1080@0.0.1920.1080" timestamp="1591077448449" />
+    <state width="1878" height="403" key="GridCell.Tab.3.center/307.1103.1440.877/47.23.1873.1057@47.23.1873.1057" timestamp="1591077856132" />
+    <state width="1878" height="403" key="GridCell.Tab.3.left" timestamp="1591077856130">
+      <screen x="47" y="23" width="1873" height="1057" />
+    </state>
+    <state width="1878" height="403" key="GridCell.Tab.3.left/307.1080.1440.900/0.0.1920.1080@0.0.1920.1080" timestamp="1591077448447" />
+    <state width="1878" height="403" key="GridCell.Tab.3.left/307.1103.1440.877/47.23.1873.1057@47.23.1873.1057" timestamp="1591077856130" />
+    <state width="1878" height="403" key="GridCell.Tab.3.right" timestamp="1591077856133">
+      <screen x="47" y="23" width="1873" height="1057" />
+    </state>
+    <state width="1878" height="403" key="GridCell.Tab.3.right/307.1080.1440.900/0.0.1920.1080@0.0.1920.1080" timestamp="1591077448452" />
+    <state width="1878" height="403" key="GridCell.Tab.3.right/307.1103.1440.877/47.23.1873.1057@47.23.1873.1057" timestamp="1591077856133" />
+    <state x="650" y="225" key="RiderGenerateDialog" timestamp="1590994153801">
+      <screen x="0" y="0" width="1920" height="1080" />
+    </state>
+    <state x="650" y="225" key="RiderGenerateDialog/307.1080.1440.900/0.0.1920.1080@0.0.1920.1080" timestamp="1590994153801" />
+    <state x="579" y="158" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser" timestamp="1591075873869">
+      <screen x="0" y="0" width="1920" height="1080" />
+    </state>
+    <state x="579" y="158" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser/307.1080.1440.900/0.0.1920.1080@0.0.1920.1080" timestamp="1591075873869" />
+    <state x="613" y="266" width="694" height="548" key="find.popup" timestamp="1590991075058">
+      <screen x="0" y="0" width="1920" height="1080" />
+    </state>
+    <state x="613" y="266" width="694" height="548" key="find.popup/307.1080.1440.900/0.0.1920.1080@0.0.1920.1080" timestamp="1590991075058" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/Assets/Scripts/Client/ChunkLoaderSystem.cs</url>
+          <line>145</line>
+          <properties documentPath="$PROJECT_DIR$/Assets/Scripts/Client/ChunkLoaderSystem.cs" initialLine="141">
+            <startOffsets>
+              <option value="4936" />
+            </startOffsets>
+            <endOffsets>
+              <option value="5095" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="13" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/Assets/Scripts/Client/ChunkLoaderSystem.cs</url>
+          <line>135</line>
+          <properties documentPath="$PROJECT_DIR$/Assets/Scripts/Client/ChunkLoaderSystem.cs" initialLine="131">
+            <startOffsets>
+              <option value="4583" />
+            </startOffsets>
+            <endOffsets>
+              <option value="4619" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="15" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+    <watches-manager>
+      <configuration name="UNITY_DEBUG_RUN_CONFIGURATION">
+        <watch expression="part.slices" />
+      </configuration>
+    </watches-manager>
+  </component>
+</project>
