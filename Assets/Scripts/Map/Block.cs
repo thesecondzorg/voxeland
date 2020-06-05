@@ -4,7 +4,7 @@ namespace Test.Map
 {
     public enum ViewType
     {
-        Block, Mesh
+        None, Block, Mesh
     }
     public struct BlockId : IEquatable<BlockId>
     {

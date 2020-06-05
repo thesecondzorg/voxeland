@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5508691066365255005}
   - component: {fileID: -857194977219857948}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Chunk
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -25,7 +25,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6466441274200278390}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 2.9196377, y: 3.9316635, z: 4.866782}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -45,6 +45,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ChunkPart: {fileID: -1023646094705099988, guid: 27c950725079943f1b64a1705b3c9bdf,
     type: 3}
-  Material: {fileID: 2100000, guid: c438e5c679f1be040a135443008e2fce, type: 2}
   terrainGenerator: {fileID: 11400000, guid: f7d06a6950fbc4bff818939ded340e9a, type: 2}
   enableCollider: 0

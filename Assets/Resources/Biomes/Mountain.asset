@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e667fbd9acf0413daa098162475557c2, type: 3}
-  m_Name: Plain
+  m_Name: Mountain
   m_EditorClassIdentifier: 
-  BiomeId: 0
-  Name: Plain
+  BiomeId: 1
+  Name: Mountain
   MinHeight: 70
-  MaxHeight: 80
-  topBlock: {fileID: 11400000, guid: 9fa0b2ba3f2de4822916b284c52c807c, type: 2}
+  MaxHeight: 150
+  topBlock: {fileID: 11400000, guid: 51f69c0cf6a834eddb757a3c7cae6344, type: 2}

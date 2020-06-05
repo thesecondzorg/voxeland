@@ -20,6 +20,10 @@ namespace Test.Map
 
         public BlockId GetId(int x, int y, int z)
         {
+            if (Slices[y] == null)
+            {
+                return BlockId.AIR;
+            }
             return Slices[y].GetId(x, z);
         }
         

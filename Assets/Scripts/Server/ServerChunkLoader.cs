@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using Map;
 using Mirror;
 using Test;
 using Test.Map;
@@ -87,7 +89,15 @@ namespace Server
 
                     foreach (NetworkConnection connection in list)
                     {
-                        connection.Send(message);
+                        try
+                        {
+                            connection.Send(message);
+                        }
+                        catch (Exception e)
+                        {
+                            Debug.LogError("Unable to send " + obj.chunkPosition.ToString());
+                            Debug.LogError(e);
+                        }
                     }
                 }
             }

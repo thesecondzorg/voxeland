@@ -9,11 +9,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 088125e4dfff430eb4ab80367a37bf45, type: 3}
-  m_Name: Dirt
+  m_Script: {fileID: 11500000, guid: a027d58867644747ba60592fab03540c, type: 3}
+  m_Name: WorldHolder
   m_EditorClassIdentifier: 
-  Name: Dirt
-  Texture: {fileID: 2800000, guid: bcc8fc05f1f924531a65f39394c0b703, type: 3}
-  IsSolid: 1
-  Duribality: 10
-  ViewType: 0

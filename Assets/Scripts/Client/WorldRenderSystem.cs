@@ -1,23 +1,23 @@
 using System;
 using System.Collections.Generic;
+using Map;
 using Mirror;
+using Test;
 using Test.Map;
 using Unity.Collections;
 using UnityEngine;
 
-namespace Test
+namespace Client
 {
     public class WorldRenderSystem : MonoBehaviour
     {
-        [SerializeField] private TerrainGenerator terrainGenerator;
         [Header("Map")] [SerializeField] private GameObject ChunkPrefab;
 
-        private Queue<Vector2Int> chunkToRender;
-        public WorldHolder worldHolder;
-        public Action<Vector2Int> ChunkReadyCallBack;
+        private Queue<Vector2Int> chunkToRender = new Queue<Vector2Int>();
+        public ChunksHolder worldHolder;
+        public Action<Vector2Int, ChunkViewRenderer> ChunkReadyCallBack;
         private void Awake()
         {
-            chunkToRender = new Queue<Vector2Int>();
         }
 
         public void ReceiveChunk(ChunkData chunk)
@@ -51,11 +51,11 @@ namespace Test
         }
         private bool SpawnChunk(Vector2Int chunkPosition)
         {
-            if (worldHolder.TryGet(chunkPosition + Vector2Int.right, out LoadedChunk right) && right.IsLoaded &&
-                worldHolder.TryGet(chunkPosition + Vector2Int.left, out LoadedChunk left) && left.IsLoaded &&
-                worldHolder.TryGet(chunkPosition + Vector2Int.up, out LoadedChunk forward) && forward.IsLoaded &&
-                worldHolder.TryGet(chunkPosition + Vector2Int.down, out LoadedChunk back) && back.IsLoaded &&
-                worldHolder.TryGet(chunkPosition, out LoadedChunk chunk )&& chunk.IsLoaded)
+            if (worldHolder.TryGet(chunkPosition + Vector2Int.right, out Chunk right) && right.IsLoaded &&
+                worldHolder.TryGet(chunkPosition + Vector2Int.left, out Chunk left) && left.IsLoaded &&
+                worldHolder.TryGet(chunkPosition + Vector2Int.up, out Chunk forward) && forward.IsLoaded &&
+                worldHolder.TryGet(chunkPosition + Vector2Int.down, out Chunk back) && back.IsLoaded &&
+                worldHolder.TryGet(chunkPosition, out Chunk chunk )&& chunk.IsLoaded)
             {
                  Debug.Log("Spawn " + chunkPosition);
                 GameObject go = Instantiate(ChunkPrefab);
@@ -65,11 +65,11 @@ namespace Test
                     0,
                     chunkPosition.y * GameSettings.CHUNK_SIZE);
                 ChunkViewRenderer viewRenderer = go.GetComponent<ChunkViewRenderer>();
-                viewRenderer.Initial(chunk.ChunkData, right.ChunkData, left.ChunkData, forward.ChunkData, back.ChunkData);
+                viewRenderer.Initial(chunk.chunk, right.chunk, left.chunk, forward.chunk, back.chunk);
                 viewRenderer.ChunkReadyCallBack = ChunkReadyCallBack;
                 // go.AddComponent<NetworkIdentity>();
                 // chunks.Add(go);
-                chunk.ChunkView = viewRenderer;
+                chunk.view = viewRenderer;
                 //NetworkServer.Spawn(go);
                 return true;
             }

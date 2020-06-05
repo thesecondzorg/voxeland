@@ -4,40 +4,43 @@ using Test;
 using Test.Netowrker;
 using UnityEngine;
 
-public class RenderChunkPart : MonoBehaviour
+namespace Client
 {
-    private MeshFilter meshFilter;
-    private MeshCollider collider;
-    private MeshRenderer meshRenderer;
-    public Material Material;
-
-    public ChunkViewRenderer.MeshBuilder meshBuilder;
-
-    // Start is called before the first frame update
-    void Start()
+    public class RenderChunkPart : MonoBehaviour
     {
-        Mesh mesh = new Mesh
+        private MeshFilter meshFilter;
+        private MeshCollider collider;
+        private MeshRenderer meshRenderer;
+        public Material Material;
+
+        public ChunkViewRenderer.MeshBuilder meshBuilder;
+
+        // Start is called before the first frame update
+        void Start()
         {
-            vertices = meshBuilder.vertices,
-            normals = meshBuilder.normals,
-            uv = meshBuilder.uv,
-            triangles = meshBuilder.triangles
-        };
-        mesh.RecalculateBounds();
-        mesh.UploadMeshData(false); //Finalize
-        meshFilter = GetComponent<MeshFilter>();
-        meshFilter.mesh = mesh;
+            Mesh mesh = new Mesh
+            {
+                vertices = meshBuilder.vertices,
+                normals = meshBuilder.normals,
+                uv = meshBuilder.uv,
+                triangles = meshBuilder.triangles
+            };
+            mesh.RecalculateBounds();
+            mesh.UploadMeshData(false); //Finalize
+            meshFilter = GetComponent<MeshFilter>();
+            meshFilter.mesh = mesh;
 
-        collider = GetComponent<MeshCollider>();
-        collider.sharedMesh = mesh;
+            collider = GetComponent<MeshCollider>();
+            collider.sharedMesh = mesh;
 
-        meshRenderer = GetComponent<MeshRenderer>();
-        meshRenderer.sharedMaterial = Material;
-        gameObject.layer = 5;
-    }
+            meshRenderer = GetComponent<MeshRenderer>();
+            meshRenderer.material.SetVector("_TextureIndex",
+                new Vector4((int) meshBuilder.blockId.Id, meshBuilder.damage));
+        }
 
-    // Update is called once per frame
-    void Update()
-    {
+        // Update is called once per frame
+        void Update()
+        {
+        }
     }
 }

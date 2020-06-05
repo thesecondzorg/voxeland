@@ -13,8 +13,13 @@ MonoBehaviour:
   m_Name: TerrainGenerator
   m_EditorClassIdentifier: 
   Blocks:
+  - {fileID: 11400000, guid: 1709feb0f9b0a41bc875118cdfe057cb, type: 2}
   - {fileID: 11400000, guid: 9fa0b2ba3f2de4822916b284c52c807c, type: 2}
+  - {fileID: 11400000, guid: 51f69c0cf6a834eddb757a3c7cae6344, type: 2}
   Biomes:
   - {fileID: 11400000, guid: 9bbe4c651b99a4da99f64d591a347d98, type: 2}
+  - {fileID: 11400000, guid: cacd1b1906bd041ce8038c74bf6cfcd8, type: 2}
   Seed: 0
   WorldHeight: 256
+  TerrainMaterial: {fileID: 2100000, guid: b8868cc31d280426bb2df6340fe1443b, type: 2}
+  texture2DArray: {fileID: 18700000, guid: e5943bb49106643d48d53dd18dffb179, type: 2}

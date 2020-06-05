@@ -1,3 +1,4 @@
+using Test.Map;
 using UnityEngine;
 
 namespace Test.Biomes
@@ -9,5 +10,6 @@ namespace Test.Biomes
         public string Name;
         public int MinHeight;
         public int MaxHeight;
+        public BlockSpecification topBlock;
     }
 }

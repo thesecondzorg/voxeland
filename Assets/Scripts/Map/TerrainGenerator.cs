@@ -1,11 +1,17 @@
+using System;
 using System.Collections.Generic;
 using Map;
+using Test;
 using Test.Biomes;
 using Test.Map;
 using Unity.Jobs;
+using Unity.Mathematics;
+using UnityEditor;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
+using Random = UnityEngine.Random;
 
-namespace Test
+namespace Map
 {
     [CreateAssetMenu(fileName = "TerrainGenerator", menuName = "GameAssets/TerrainGenerator", order = 1)]
     public class TerrainGenerator : ScriptableObject
@@ -16,12 +22,28 @@ namespace Test
         [SerializeField] public int Seed;
 
         [SerializeField] public int WorldHeight = 256;
+        [SerializeField] public Material TerrainMaterial;
+        public Texture2DArray texture2DArray;
+        float3 caveRate = new float3(1, 2, 1);
 
-
-        public Vector2Int ToChunkPos(Vector3 pos)
+        public void InitAwake()
         {
-            return new Vector2Int((int) pos.x / GameSettings.CHUNK_SIZE, (int) pos.z / GameSettings.CHUNK_SIZE);
+            Seed = Random.Range(10, 10000);
+            texture2DArray = new Texture2DArray(128, 128, Blocks.Count, TextureFormat.RGB24, false);
+            for (int i = 0; i < Blocks.Count; i++)
+            {
+                Blocks[i].blockId = (uint) (i);
+                if (Blocks[i].ViewType == ViewType.Block)
+                {
+                    texture2DArray.SetPixels(Blocks[i].Texture.GetPixels(0), i);
+                }
+            }
+
+            texture2DArray.Apply();
+            TerrainMaterial.SetTexture("_TextureArray", texture2DArray);
         }
+
+       
 
         public Vector3Int ToBlockInChunkPos(Vector2Int chunkPos, Vector3 pos)
         {
@@ -42,13 +64,14 @@ namespace Test
 
         public BlockInfo Get(Vector3Int blockPosition)
         {
-            Vector2Int chunkPosition = ToChunkPos(blockPosition);
+            Vector2Int chunkPosition = GameSettings.ToChunkPos(blockPosition);
             return Get(chunkPosition, ToBlockInChunkPos(chunkPosition, blockPosition));
         }
 
         public BlockId Get(float height, Vector3Int blockGlobalPosition)
         {
-            // BiomeSpecification biomeSpecification = resolveBiome(chunkPosition);
+            BiomeSpecification biomeSpecification =
+                resolveBiome(new Vector2Int(blockGlobalPosition.x, blockGlobalPosition.z));
             // float heightVariation = biomeSpecification.MaxHeight - biomeSpecification.MinHeight;
             // float height = Mathf.PerlinNoise(
             //                    Seed + chunkPosition.x * ChunkSize + blockInChunkPosition.x,
@@ -56,22 +79,54 @@ namespace Test
             //                * heightVariation
             //                + biomeSpecification.MinHeight;
             // Debug.Log(height);
-            
             if (blockGlobalPosition.y == 0)
             {
                 // TODO badrock
-                return new BlockId { Id = 1 };
+                return new BlockId {Id = 1};
             }
 
             if (blockGlobalPosition.y <= height)
             {
-                if (Perlin.Noise(blockGlobalPosition.x / 10f, blockGlobalPosition.y / 10f, blockGlobalPosition.z / 10f) > 1.0 / blockGlobalPosition.y)
+                // float airNoise = Mathf.Abs(Perlin.Noise(blockGlobalPosition.x / 20f, blockGlobalPosition.y / 30f,
+                //     blockGlobalPosition.z / 20f));
+                //float airNoise = Mathf.Abs(noise.cnoise(new float3(blockGlobalPosition.x, blockGlobalPosition.y, blockGlobalPosition.z) / caveRate  + Seed));
+                if (noiseFbm(blockGlobalPosition) > 0.00035f)
                 {
-                    return new BlockId { Id = 1 };
+                    if (height - blockGlobalPosition.y < 5)
+                    {
+                        return new BlockId {Id = biomeSpecification.topBlock.blockId};
+                    }
+                    else
+                    {
+                        return new BlockId {Id = 2};
+                    }
                 }
             }
 
             return BlockId.AIR;
+        }
+
+        float noiseFbm(Vector3 pos)
+        {
+            Vector3 p = pos * caveRate;
+            float r = 0;
+            for (int i = 1; i <= 5; i++)
+            {
+                r += Perlin.Noise(new Vector3(1 / (p.x + Seed / i), 1 / (p.y + Seed / i), 1 / (p.z + Seed / i)));
+            }
+            return Mathf.Abs(r / 5);
+        }
+
+        float noise2Fbm(Vector3 pos)
+        {
+            float3 p = new float3(pos.x, pos.y, pos.z) / caveRate;
+            float r = 0;
+            for (int i = 1; i <= 5; i++)
+            {
+                r += noise.snoise(p + Seed / i);
+            }
+
+            return Mathf.Abs(r);
         }
 
         public BlockInfo Get(Vector2Int chunkPosition, Vector3Int blockInChunkPosition)
@@ -83,7 +138,7 @@ namespace Test
                                Seed + chunkPosition.y * GameSettings.CHUNK_SIZE + blockInChunkPosition.z)
                            * heightVariation
                            + biomeSpecification.MinHeight;
-            
+
             Debug.Log(height);
             if ((float) blockInChunkPosition.y <= height)
             {
@@ -100,50 +155,10 @@ namespace Test
                 BiomeId = new BiomeId(biomeSpecification.BiomeId)
             };
         }
-        //
-        // public ChunkData GetChunk(Vector2Int chunkPosition)
-        // {
-        //     ChunkSlice[] slices = new ChunkSlice[WorldHeight];
-        //     List<BlockId[,]> tmpSlices = new List<BlockId[,]>();
-        //     for (int h = 0; h < WorldHeight; h++)
-        //     {
-        //         tmpSlices.Add(new BlockId[GameSettings.CHUNK_SIZE, GameSettings.CHUNK_SIZE]);
-        //     }
-        //
-        //     for (int x = 0; x < GameSettings.CHUNK_SIZE; x++)
-        //     {
-        //         for (int y = 0; y < GameSettings.CHUNK_SIZE; y++)
-        //         {
-        //             BiomeSpecification biomeSpecification = resolveBiome(chunkPosition);
-        //             float heightVariation = biomeSpecification.MaxHeight - biomeSpecification.MinHeight;
-        //             float height = Perlin.Noise(
-        //                                (chunkPosition.x * GameSettings.CHUNK_SIZE + (float) x) / Seed,
-        //                                (chunkPosition.y * GameSettings.CHUNK_SIZE + (float) y) / Seed)
-        //                            * heightVariation
-        //                            + biomeSpecification.MinHeight;
-        //             Debug.Log(" " + new Vector2((chunkPosition.x * GameSettings.CHUNK_SIZE + (float) x) / Seed,
-        //                 (chunkPosition.y * GameSettings.CHUNK_SIZE + (float) y) / Seed) + " : " + height);
-        //             for (int h = 0; h < height; h++)
-        //             {
-        //                 tmpSlices[h][x, y] = Get(height,
-        //                     new Vector3Int(chunkPosition.x * GameSettings.CHUNK_SIZE + x, h, chunkPosition.y * GameSettings.CHUNK_SIZE + y));
-        //
-        //                 // blockIds[x, y] = 
-        //             }
-        //         }
-        //     }
-        //
-        //     for (var i = 0; i < tmpSlices.Count; i++)
-        //     {
-        //         slices[i] = new ChunkSlice(tmpSlices[i]);
-        //     }
-        //
-        //     return new ChunkData {Slices = slices};
-        // }
 
         public BlockSpecification GetBlockData(BlockId id)
         {
-            return Blocks[(int) id.Id - 1];
+            return Blocks[(int) id.Id];
         }
     }
 }

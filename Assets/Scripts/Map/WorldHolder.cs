@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Server;
 using Test.Map;
@@ -9,14 +10,11 @@ namespace Test
     {
         private readonly List<uint> registeredClients = new List<uint>();
 
-        private int receivedParts = 0;
-        private ChunkData tmpBatches;
+     
         public bool IsLoaded => ChunkData != null;
-        public bool IsReady => ChunkView != null;
         public bool IsEmpty => registeredClients.Count == 0;
 
         public ChunkData ChunkData;
-        public ChunkViewRenderer ChunkView { get; set; }
 
         public void RegisterClient(uint connectionId)
         {
@@ -33,27 +31,7 @@ namespace Test
             return registeredClients.Remove(netIdentityNetId);
         }
 
-        public bool Merge(ChunkPartMessage part)
-        {
-            if (tmpBatches == null)
-            {
-                tmpBatches = new ChunkData {chunkPosition = part.chunkPosition, Slices = new ChunkSlice[part.height]};
-            }
-
-            for (int i = 0; i < part.slices.Length; i++)
-            {
-                tmpBatches.Slices[part.shift+i] = part.slices[i];
-            }
-
-            receivedParts++;
-            if (receivedParts == 16)
-            {
-                ChunkData = tmpBatches;
-                tmpBatches = null;
-                return true;
-            }
-            return false;
-        }
+       
     }
     
     [CreateAssetMenu(fileName = "WorldHolder", menuName = "GameAssets/WorldHolder")]

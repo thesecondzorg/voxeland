@@ -134,10 +134,10 @@ public class ChunkMesh
     {
         int n = con.vertices.Count;
 
-        con.vertices.Add(new Vector3(g_pos[x + 1], g_zpos[y], g_pos[z + 1]));
-        con.vertices.Add(new Vector3(g_pos[x + 1], g_zpos[y + 1], g_pos[z + 1]));
-        con.vertices.Add(new Vector3(g_pos[x + 1], g_zpos[y + 1], g_pos[z]));
-        con.vertices.Add(new Vector3(g_pos[x + 1], g_zpos[y], g_pos[z]));
+        con.vertices.Add(new Vector3(x + 0.5f, y - 0.5f, z + 0.5f));
+        con.vertices.Add(new Vector3(x + 0.5f, y + 0.5f, z + 0.5f));
+        con.vertices.Add(new Vector3(x + 0.5f, y + 0.5f, z - 0.5f));
+        con.vertices.Add(new Vector3(x + 0.5f, y - 0.5f, z - 0.5f));
 
         con.normals.AddRange(s_normal_xp);
         con.uv.AddRange(s_uv_xp);
@@ -155,10 +155,10 @@ public class ChunkMesh
     {
         int n = con.vertices.Count;
 
-        con.vertices.Add(new Vector3(g_pos[x], g_zpos[y], g_pos[z + 1]));
-        con.vertices.Add(new Vector3(g_pos[x], g_zpos[y + 1], g_pos[z + 1]));
-        con.vertices.Add(new Vector3(g_pos[x], g_zpos[y + 1], g_pos[z]));
-        con.vertices.Add(new Vector3(g_pos[x], g_zpos[y], g_pos[z]));
+        con.vertices.Add(new Vector3(x - 0.5f, y - 0.5f, z + 0.5f));
+        con.vertices.Add(new Vector3(x - 0.5f, y + 0.5f, z + 0.5f));
+        con.vertices.Add(new Vector3(x - 0.5f, y + 0.5f, z - 0.5f));
+        con.vertices.Add(new Vector3(x - 0.5f, y - 0.5f, z - 0.5f));
 
         con.normals.AddRange(s_normal_xn);
         con.uv.AddRange(s_uv_xp);
@@ -176,10 +176,10 @@ public class ChunkMesh
     {
         int n = con.vertices.Count;
 
-        con.vertices.Add(new Vector3(g_pos[x], g_zpos[y], g_pos[z + 1]));
-        con.vertices.Add(new Vector3(g_pos[x], g_zpos[y + 1], g_pos[z + 1]));
-        con.vertices.Add(new Vector3(g_pos[x + 1], g_zpos[y + 1], g_pos[z + 1]));
-        con.vertices.Add(new Vector3(g_pos[x + 1], g_zpos[y], g_pos[z + 1]));
+        con.vertices.Add(new Vector3(x - 0.5f, y - 0.5f, z + 0.5f));
+        con.vertices.Add(new Vector3(x - 0.5f, y + 0.5f, z + 0.5f));
+        con.vertices.Add(new Vector3(x + 0.5f, y + 0.5f, z + 0.5f));
+        con.vertices.Add(new Vector3(x + 0.5f, y - 0.5f, z + 0.5f));
 
         con.normals.AddRange(s_normal_yp);
         con.uv.AddRange(s_uv_yp);
@@ -197,10 +197,10 @@ public class ChunkMesh
     {
         int n = con.vertices.Count;
 
-        con.vertices.Add(new Vector3(g_pos[x], g_zpos[y], g_pos[z]));
-        con.vertices.Add(new Vector3(g_pos[x], g_zpos[y + 1], g_pos[z]));
-        con.vertices.Add(new Vector3(g_pos[x + 1], g_zpos[y + 1], g_pos[z]));
-        con.vertices.Add(new Vector3(g_pos[x + 1], g_zpos[y], g_pos[z]));
+        con.vertices.Add(new Vector3(x - 0.5f, y - 0.5f, z - 0.5f));
+        con.vertices.Add(new Vector3(x - 0.5f, y + 0.5f, z - 0.5f));
+        con.vertices.Add(new Vector3(x + 0.5f, y + 0.5f, z - 0.5f));
+        con.vertices.Add(new Vector3(x + 0.5f, y - 0.5f, z - 0.5f));
 
         con.normals.AddRange(s_normal_yn);
         con.uv.AddRange(s_uv_xp);
@@ -218,10 +218,10 @@ public class ChunkMesh
     {
         int n = con.vertices.Count;
 
-        con.vertices.Add(new Vector3(g_pos[x], g_zpos[y + 1], g_pos[z]));
-        con.vertices.Add(new Vector3(g_pos[x + 1], g_zpos[y + 1], g_pos[z]));
-        con.vertices.Add(new Vector3(g_pos[x + 1], g_zpos[y + 1], g_pos[z + 1]));
-        con.vertices.Add(new Vector3(g_pos[x], g_zpos[y + 1], g_pos[z + 1]));
+        con.vertices.Add(new Vector3(x - 0.5f, y + 0.5f, z - 0.5f));
+        con.vertices.Add(new Vector3(x + 0.5f, y + 0.5f, z - 0.5f));
+        con.vertices.Add(new Vector3(x + 0.5f, y + 0.5f, z + 0.5f));
+        con.vertices.Add(new Vector3(x - 0.5f, y + 0.5f, z + 0.5f));
 
         con.normals.AddRange(s_normal_zp);
         con.uv.AddRange(s_uv_zp);
@@ -239,10 +239,10 @@ public class ChunkMesh
     {
         int n = con.vertices.Count;
 
-        con.vertices.Add(new Vector3(g_pos[x], g_zpos[y], g_pos[z]));
-        con.vertices.Add(new Vector3(g_pos[x + 1], g_zpos[y], g_pos[z]));
-        con.vertices.Add(new Vector3(g_pos[x + 1], g_zpos[y], g_pos[z + 1]));
-        con.vertices.Add(new Vector3(g_pos[x], g_zpos[y], g_pos[z + 1]));
+        con.vertices.Add(new Vector3(x - 0.5f, y - 0.5f, z - 0.5f));
+        con.vertices.Add(new Vector3(x + 0.5f, y - 0.5f, z - 0.5f));
+        con.vertices.Add(new Vector3(x + 0.5f, y - 0.5f, z + 0.5f));
+        con.vertices.Add(new Vector3(x - 0.5f, y - 0.5f, z + 0.5f));
 
         con.normals.AddRange(s_normal_zn);
         con.uv.AddRange(s_uv_xp);

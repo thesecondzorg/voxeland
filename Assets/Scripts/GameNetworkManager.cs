@@ -1,3 +1,5 @@
+using Client;
+using Map;
 using Mirror;
 using Server;
 using Test;
@@ -16,10 +18,16 @@ public class GameNetworkManager : NetworkManager
     {
         // add player at correct spawn position
         GameObject player = Instantiate(playerPrefab);
+        //player.GetComponent<SelectTargetSystem>().worldHolder = terrainGenerator.World;
         NetworkServer.AddPlayerForConnection(conn, player);
         Debug.Log("New player connected");
     }
 
+    public override void Awake()
+    {
+        base.Awake();
+        terrainGenerator.InitAwake();
+    }
     public override void OnStartServer()
     {
         base.OnStartServer();

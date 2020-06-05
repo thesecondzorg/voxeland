@@ -1,38 +1,38 @@
-﻿﻿using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 using System.Threading;
+using Map;
 using Mirror;
+using Test;
 using Test.Map;
- using Test.Netowrker;
- using UnityEngine;
+using Test.Netowrker;
+using UnityEngine;
 
-namespace Test
+namespace Client
 {
     public class ChunkViewRenderer : MonoBehaviour
     {
-        private ChunkData ChunkData;
+        public ChunkData ChunkData;
         private ChunkData right;
         private ChunkData left;
         private ChunkData forward;
         private ChunkData backward;
 
         [SerializeField] public RenderChunkPart ChunkPart;
-        [SerializeField] public Material Material;
         [SerializeField] public TerrainGenerator terrainGenerator;
 
         private Dictionary<BlockId, Transform> parts = new Dictionary<BlockId, Transform>();
         private View view;
         private bool ready = false;
-        public Action<Vector2Int> ChunkReadyCallBack;
-        public bool enableCollider = false;
-        private bool colliderEnabled = false;
+        public Action<Vector2Int, ChunkViewRenderer> ChunkReadyCallBack;
+        public Nullable<bool> enableColliderTargetStatus;
 
         private float renderStartTime;
 
         // Start is called before the first frame update
         void Start()
         {
-
             name = $"Chunk {ChunkData.chunkPosition.x}, {ChunkData.chunkPosition.y}";
             transform.position = new Vector3(
                 ChunkData.chunkPosition.x * GameSettings.CHUNK_SIZE,
@@ -46,16 +46,17 @@ namespace Test
         // Update is called once per frame
         void Update()
         {
-            if (ready && enableCollider != colliderEnabled)
+            lock (ChunkData)
             {
-                foreach (KeyValuePair<BlockId, Transform> part in parts)
+                if (ready && enableColliderTargetStatus.HasValue)
                 {
-                    if (!colliderEnabled)
+                    foreach (KeyValuePair<BlockId, Transform> part in parts)
                     {
                         UpdateCollider updateCollider = part.Value.gameObject.AddComponent<UpdateCollider>();
-                        updateCollider.State = enableCollider;
-                        colliderEnabled = true;
+                        updateCollider.State = enableColliderTargetStatus.Value;
                     }
+
+                    enableColliderTargetStatus = null;
                 }
             }
 
@@ -64,7 +65,7 @@ namespace Test
                 ready = true;
                 Debug.Log("Start rendering " + ChunkData.chunkPosition + "  " + view.mesh.Count);
                 RenderChunk(ChunkData.chunkPosition, view);
-                ChunkReadyCallBack.Invoke(ChunkData.chunkPosition);
+                ChunkReadyCallBack.Invoke(ChunkData.chunkPosition, this);
                 Debug.Log("Chunk " + ChunkData.chunkPosition + " rendered in " + (Time.fixedTime - renderStartTime));
             }
         }
@@ -82,8 +83,11 @@ namespace Test
         {
             for (int i = 0; i < ch.mesh.Count; ++i)
             {
+                BlockSpecification blockData = terrainGenerator.GetBlockData(ch.mesh[i].blockId);
                 RenderChunkPart go = Instantiate(ChunkPart, transform, false);
-                go.name = $"Chunk {chunkPos.x}:{chunkPos.y} [{ch.mesh[i].blockId}]";
+                go.name = $"Chunk {chunkPos.x}:{chunkPos.y} [{blockData.Name}]";
+                // go.gameObject.layer = 8;
+                // go.GetComponent<MeshRenderer>().material.SetTexture("_TextureArray" , terrainGenerator.texture2DArray);
                 // go.layer = 5;
                 //     // new GameObject(
                 //         // 
@@ -110,7 +114,6 @@ namespace Test
                 //
                 // MeshRenderer meshRenderer = go.GetComponent<MeshRenderer>();
                 // meshRenderer.material = Material;
-                go.Material = Material;
                 go.meshBuilder = ch.mesh[i];
                 // ChunkMesh.TextureIndex texture = ch.mesh[i].texture;
 
@@ -312,12 +315,22 @@ namespace Test
             public Vector3[] normals;
             public Vector2[] uv;
             public int[] triangles;
+            public float damage;
         }
 
         public class View
         {
             public List<MeshBuilder> mesh = new List<MeshBuilder>();
             // public List<ObjectView> objects = new List<ObjectView>();
+        }
+
+        public void Unload()
+        {
+            foreach (KeyValuePair<BlockId,Transform> keyValuePair in parts)
+            {
+                Destroy(keyValuePair.Value.gameObject);
+            }
+            Destroy(this.gameObject);
         }
     }
 }

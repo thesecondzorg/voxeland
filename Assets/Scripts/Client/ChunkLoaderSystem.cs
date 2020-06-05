@@ -2,22 +2,106 @@ using System;
 using System.Collections.Generic;
 using Mirror;
 using Server;
+using Test;
 using Test.Map;
 using Test.Netowrker;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace Test
+namespace Client
 {
+    public enum ChunkRenderState
+    {
+        None,
+        Started,
+        Done
+    }
+
+    public class Chunk
+    {
+        public ChunkData chunk;
+        public ChunkViewRenderer view;
+        private int receivedParts = 0;
+        private ChunkData tmpBatches;
+
+        public ChunkRenderState renderState = ChunkRenderState.None;
+        public bool IsLoaded = false;
+
+        public bool Merge(ChunkPartMessage part)
+        {
+            if (tmpBatches == null)
+            {
+                try
+                {
+                    tmpBatches = new ChunkData
+                        {chunkPosition = part.chunkPosition, Slices = new ChunkSlice[part.height]};
+                }
+                catch (OverflowException e)
+                {
+                    Debug.LogError(part);
+                }
+            }
+
+            for (int i = 0; i < part.slices.Length; i++)
+            {
+                tmpBatches.Slices[part.shift + i] = part.slices[i];
+            }
+
+            receivedParts++;
+            for (int i = 0; i < tmpBatches.Slices.Length; i++)
+            {
+                if (tmpBatches.Slices[i] == null)
+                {
+                    return false;
+                }
+            }
+            chunk = tmpBatches;
+            tmpBatches = null;
+            IsLoaded = true;
+
+            return true;
+            // if (receivedParts == 16)
+            // {
+                // chunk = tmpBatches;
+                // tmpBatches = null;
+                // return true;
+            // }
+
+            return false;
+        }
+    }
+
+    public class ChunksHolder
+    {
+        public Dictionary<Vector2Int, Chunk> loadedChunks = new Dictionary<Vector2Int, Chunk>();
+
+        public bool TryGet(Vector2Int position, out Chunk chunk)
+        {
+            return loadedChunks.TryGetValue(position, out chunk);
+        }
+
+        public void Set(Vector2Int chunkPosition, Chunk chunk)
+        {
+            loadedChunks[chunkPosition] = chunk;
+        }
+
+        public void Delete(Vector2Int position)
+        {
+            if (loadedChunks.ContainsKey(position))
+            {
+                loadedChunks.Remove(position);
+            }
+        }
+    }
+
     public class ChunkLoaderSystem : NetworkBehaviour
     {
         private int playerVisibility = 5;
-        [SerializeField] private TerrainGenerator terrainGenerator;
-        
         [SerializeField] private WorldRenderSystem renderSystem;
 
-        private WorldHolder worldHolder;
+        // private WorldHolder worldHolder;
+        private ChunksHolder worldHolder = new ChunksHolder();
 
         // private Dictionary<uint, PlayerConnectionInfo> playerInfos = new Dictionary<uint, PlayerConnectionInfo>();
         [SerializeField] private PlayerInputSystem playerInput;
@@ -36,7 +120,6 @@ namespace Test
 
         public void Awake()
         {
-            worldHolder = new WorldHolder();
             renderSystem.worldHolder = worldHolder;
             renderSystem.ChunkReadyCallBack = ChunkReadyCallBack;
             NetworkClient.RegisterHandler<ChunkPartMessage>(OnReceiveChunk);
@@ -52,65 +135,94 @@ namespace Test
                 (int) (playerPos.z / GameSettings.CHUNK_SIZE));
             if (!oldChunkPos.HasValue || newChunkPos != oldChunkPos.Value)
             {
-                RequestChunks(0, newChunkPos);
+                lock (worldHolder)
+                {
+                    RequestChunks(newChunkPos);
+                }
                 oldChunkPos = newChunkPos;
             }
 
-            if (playerInput != null && playerPosToSet.HasValue)
+            if (playerPosToSet.HasValue)
             {
                 //playerInput.SetPosition(playerPosToSet.Value);
+                transform.position = playerPosToSet.Value;
                 playerPosToSet = null;
             }
         }
 
-        private void RequestChunks(uint netId, Vector2Int centerChunk)
+        private void UnloadChunk(Vector2Int pos)
+        {
+            if (worldHolder.TryGet(pos, out Chunk chunk))
+            {
+                if (chunk.renderState == ChunkRenderState.Done)
+                {
+                    chunk.view.Unload();
+                }
+
+                worldHolder.Delete(pos);
+            }
+        }
+
+        private void RequestChunks(Vector2Int centerChunk)
         {
             if (!isLocalPlayer)
             {
                 return;
             }
+
+            List<Vector2Int> chunksToLoad = new List<Vector2Int>();
             Debug.Log("Client requested chunks");
-            RequestChunk(netId, centerChunk, 0);
+            chunksToLoad.Add(centerChunk);
 
             for (int x = 1; x < playerVisibility; x++)
             {
                 for (int i = 0; i <= x; i++)
                 {
-                    RequestChunk(netId, centerChunk + new Vector2Int(x, i), x);
-                    RequestChunk(netId, centerChunk + new Vector2Int(-x, i), x);
-                    RequestChunk(netId, centerChunk + new Vector2Int(i, x), x);
-                    RequestChunk(netId, centerChunk + new Vector2Int(i, -x), x);
-                    RequestChunk(netId, centerChunk + new Vector2Int(x, -i), x);
-                    RequestChunk(netId, centerChunk + new Vector2Int(-x, -i), x);
-                    RequestChunk(netId, centerChunk + new Vector2Int(-i, x), x);
-                    RequestChunk(netId, centerChunk + new Vector2Int(-i, -x), x);
+                    chunksToLoad.Add(centerChunk + new Vector2Int(x, i));
+                    chunksToLoad.Add(centerChunk + new Vector2Int(-x, i));
+                    chunksToLoad.Add(centerChunk + new Vector2Int(i, x));
+                    chunksToLoad.Add(centerChunk + new Vector2Int(i, -x));
+                    chunksToLoad.Add(centerChunk + new Vector2Int(x, -i));
+                    chunksToLoad.Add(centerChunk + new Vector2Int(-x, -i));
+                    chunksToLoad.Add(centerChunk + new Vector2Int(-i, x));
+                    chunksToLoad.Add(centerChunk + new Vector2Int(-i, -x));
                 }
+            }
+
+            foreach (Vector2Int pos in chunksToLoad)
+            {
+                RequestChunk(pos);
+            }
+
+            List<Vector2Int> toDelete = new List<Vector2Int>();
+            foreach (Vector2Int pos in worldHolder.loadedChunks.Keys)
+            {
+                if (!chunksToLoad.Contains(pos))
+                {
+                    toDelete.Add(pos);
+                }
+            }
+
+            foreach (Vector2Int pos in toDelete)
+            {
+                UnloadChunk(pos);
             }
         }
 
-        private void RequestChunk(uint netId, Vector2Int chunkPosition, int d)
+        private void RequestChunk(Vector2Int chunkPosition)
         {
-            lock (worldHolder)
+            if (worldHolder.TryGet(chunkPosition, out Chunk chunk))
             {
-                if (worldHolder.TryGet(chunkPosition, out LoadedChunk chunk))
+                if (chunk.IsLoaded && chunk.renderState == ChunkRenderState.None)
                 {
-                    if (chunk.IsLoaded && !chunk.IsRegistered(netId))
-                    {
-                        renderSystem.ReceiveChunk(chunk.ChunkData);
-                    }
+                    renderSystem.ReceiveChunk(chunk.chunk);
                 }
-                else
-                {
-                    if (chunkPosition == Vector2Int.right)
-                    {
-                        Debug.Log("");
-                    }
-
-                    CmdLoadChunk(chunkPosition);
-                    worldHolder.Set(chunkPosition, new LoadedChunk());
-                }
-
-                worldHolder.RegisterClient(chunkPosition, netId);
+            }
+            else
+            {
+                Debug.Log("Request chunk " + chunkPosition);
+                worldHolder.Set(chunkPosition, new Chunk());
+                CmdLoadChunk(chunkPosition);
             }
         }
 
@@ -126,43 +238,54 @@ namespace Test
         {
             lock (worldHolder)
             {
-                LoadedChunk loadedChunk;
-                if (!worldHolder.TryGet(part.chunkPosition, out loadedChunk))
+                if (!worldHolder.TryGet(part.chunkPosition, out Chunk loadedChunk))
                 {
-                    loadedChunk = new LoadedChunk {};
+                    loadedChunk = new Chunk();
                     worldHolder.Set(part.chunkPosition, loadedChunk);
                 }
 
-                bool done = loadedChunk.Merge(part);
-                if (!done)
+                try
                 {
+                    bool done = loadedChunk.Merge(part);
+                    if (!done)
+                    {
+                        return;
+                    }
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError(e);
+                    RequestChunk(part.chunkPosition);
                     return;
                 }
-                renderSystem.ReceiveChunk(loadedChunk.ChunkData);
 
-                if (loadedChunk.ChunkData.chunkPosition == oldChunkPos)
+                if (loadedChunk.renderState == ChunkRenderState.None)
+                {
+                    loadedChunk.renderState = ChunkRenderState.Started;
+                    renderSystem.ReceiveChunk(loadedChunk.chunk);
+                }
+
+                if (loadedChunk.chunk.chunkPosition == oldChunkPos)
                 {
                     // TODO spawn player prefab
-                    int height = loadedChunk.ChunkData.GetHeight((int) playerPos.x % GameSettings.CHUNK_SIZE,
+                    int height = loadedChunk.chunk.GetHeight((int) playerPos.x % GameSettings.CHUNK_SIZE,
                         (int) playerPos.z % GameSettings.CHUNK_SIZE);
-                    playerPosToSet = new Vector3(playerPos.x, height, playerPos.z);
+                    playerPosToSet = new Vector3(playerPos.x, height + 2, playerPos.z);
                 }
             }
         }
 
-        private void ChunkReadyCallBack(Vector2Int chunkPosition)
+        private void ChunkReadyCallBack(Vector2Int chunkPosition, ChunkViewRenderer view)
         {
-            // if (chunkPosition == playerChunkPosition)
-            // {
-            //     
-            //     Debug.Log("Enable gravity");
-            //     GetComponent<PlayerInput>().EnableGravity();
-            // }
+            if (worldHolder.TryGet(chunkPosition, out Chunk chunk))
+            {
+                chunk.view = view;
+                chunk.renderState = ChunkRenderState.Done;
+            }
 
             if (oldChunkPos.HasValue && Vector2Int.Distance(chunkPosition, oldChunkPos.Value) < 1.9f)
             {
-                worldHolder.TryGet(chunkPosition, out LoadedChunk chunk);
-                chunk.ChunkView.enableCollider = true;
+                view.enableColliderTargetStatus = true;
             }
 
             if (chunkPosition == oldChunkPos)
@@ -171,6 +294,5 @@ namespace Test
                 GetComponent<PlayerInputSystem>().EnableGravity();
             }
         }
-       
     }
 }

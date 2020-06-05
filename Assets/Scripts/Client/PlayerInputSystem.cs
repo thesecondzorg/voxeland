@@ -36,7 +36,7 @@ public class PlayerInputSystem : NetworkBehaviour
             playerCamera = Camera.main;
             Camera.main.orthographic = false;
             Camera.main.transform.SetParent(playerHead.transform);
-            Camera.main.transform.localPosition = new Vector3(0f, 1f, 0);
+            Camera.main.transform.localPosition = new Vector3(0f, 1f, -0.2f);
             Camera.main.transform.localEulerAngles = transform.forward;
             // Lock cursor
             Cursor.lockState = CursorLockMode.Locked;
@@ -44,6 +44,12 @@ public class PlayerInputSystem : NetworkBehaviour
             gravityTmp = gravity;
             gravity = 0;
         }
+    }
+
+    public override void OnStopClient()
+    {
+        base.OnStopClient();
+        OnDisable();
     }
 
     private void OnDisable()
@@ -65,7 +71,7 @@ public class PlayerInputSystem : NetworkBehaviour
             return;
         }
 
-        if (Input.GetKey(KeyCode.Escape))
+        if (Input.GetKeyUp(KeyCode.Escape))
         {
             
             Cursor.lockState = Cursor.lockState == CursorLockMode.Locked ? CursorLockMode.Confined : CursorLockMode.Locked;
