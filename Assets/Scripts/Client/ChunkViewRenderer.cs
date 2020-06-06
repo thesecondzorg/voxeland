@@ -22,7 +22,7 @@ namespace Client
         [SerializeField] public RenderChunkPart ChunkPart;
         [SerializeField] public TerrainGenerator terrainGenerator;
 
-        private Dictionary<BlockId, Transform> parts = new Dictionary<BlockId, Transform>();
+        private Dictionary<BlockId, RenderChunkPart> parts = new Dictionary<BlockId, RenderChunkPart>();
         private View view;
         private bool ready = false;
         public Action<Vector2Int, ChunkViewRenderer> ChunkReadyCallBack;
@@ -40,7 +40,7 @@ namespace Client
                 ChunkData.chunkPosition.y * GameSettings.CHUNK_SIZE);
             Debug.Log("Submit processing " + ChunkData.chunkPosition);
             renderStartTime = Time.fixedTime;
-            ThreadPool.QueueUserWorkItem(GenObjectsViewAsync);
+            
         }
 
         // Update is called once per frame
@@ -50,7 +50,7 @@ namespace Client
             {
                 if (ready && enableColliderTargetStatus.HasValue)
                 {
-                    foreach (KeyValuePair<BlockId, Transform> part in parts)
+                    foreach (KeyValuePair<BlockId, RenderChunkPart> part in parts)
                     {
                         UpdateCollider updateCollider = part.Value.gameObject.AddComponent<UpdateCollider>();
                         updateCollider.State = enableColliderTargetStatus.Value;
@@ -60,6 +60,11 @@ namespace Client
                 }
             }
 
+           
+        }
+
+        private void FixedUpdate()
+        {
             if (!ready && view != null)
             {
                 ready = true;
@@ -77,15 +82,26 @@ namespace Client
             this.left = left;
             this.forward = forward;
             this.backward = backward;
+            ready = false;
+            view = null;
+            ThreadPool.QueueUserWorkItem(GenObjectsViewAsync);
         }
 
         private void RenderChunk(Vector2Int chunkPos, View ch)
         {
             for (int i = 0; i < ch.mesh.Count; ++i)
             {
-                BlockSpecification blockData = terrainGenerator.GetBlockData(ch.mesh[i].blockId);
-                RenderChunkPart go = Instantiate(ChunkPart, transform, false);
+                BlockId blockId = ch.mesh[i].blockId;
+                if (!parts.TryGetValue(blockId, out RenderChunkPart go))
+                {
+                    go = Instantiate(ChunkPart, transform, false);
+                    parts[blockId] = go;
+                }
+                BlockSpecification blockData = terrainGenerator.GetBlockData(blockId);
                 go.name = $"Chunk {chunkPos.x}:{chunkPos.y} [{blockData.Name}]";
+                go.meshBuilder = ch.mesh[i];
+                go.Reload();
+
                 // go.gameObject.layer = 8;
                 // go.GetComponent<MeshRenderer>().material.SetTexture("_TextureArray" , terrainGenerator.texture2DArray);
                 // go.layer = 5;
@@ -114,7 +130,6 @@ namespace Client
                 //
                 // MeshRenderer meshRenderer = go.GetComponent<MeshRenderer>();
                 // meshRenderer.material = Material;
-                go.meshBuilder = ch.mesh[i];
                 // ChunkMesh.TextureIndex texture = ch.mesh[i].texture;
 
                 // if (texture.Material == BlockDef.MaterialType.Fluid)
@@ -137,7 +152,7 @@ namespace Client
 
                 // go.transform.position =
                 //     new Vector3(chunkPos.x * ChunkGenerator.g_size, 0.0f, chunkPos.y * ChunkGenerator.g_size);
-                parts[ch.mesh[i].blockId] = go.transform;
+
             }
 
             // foreach (ChunkMesh.ObjectView view in ch.objects)
@@ -326,7 +341,7 @@ namespace Client
 
         public void Unload()
         {
-            foreach (KeyValuePair<BlockId,Transform> keyValuePair in parts)
+            foreach (KeyValuePair<BlockId, RenderChunkPart> keyValuePair in parts)
             {
                 Destroy(keyValuePair.Value.gameObject);
             }

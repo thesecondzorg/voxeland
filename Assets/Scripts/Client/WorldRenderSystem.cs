@@ -16,6 +16,7 @@ namespace Client
         private Queue<Vector2Int> chunkToRender = new Queue<Vector2Int>();
         public ChunksHolder worldHolder;
         public Action<Vector2Int, ChunkViewRenderer> ChunkReadyCallBack;
+
         private void Awake()
         {
         }
@@ -36,7 +37,7 @@ namespace Client
             {
                 if (chunkToRender.Count > 0)
                 {
-                    Vector2Int chunkPosition = chunkToRender.Dequeue(); 
+                    Vector2Int chunkPosition = chunkToRender.Dequeue();
                     // if no neighbors submit again
                     if (!SpawnChunk(chunkPosition))
                     {
@@ -49,27 +50,33 @@ namespace Client
                 }
             }
         }
+
         private bool SpawnChunk(Vector2Int chunkPosition)
         {
-            if (worldHolder.TryGet(chunkPosition + Vector2Int.right, out Chunk right) && right.IsLoaded &&
-                worldHolder.TryGet(chunkPosition + Vector2Int.left, out Chunk left) && left.IsLoaded &&
-                worldHolder.TryGet(chunkPosition + Vector2Int.up, out Chunk forward) && forward.IsLoaded &&
-                worldHolder.TryGet(chunkPosition + Vector2Int.down, out Chunk back) && back.IsLoaded &&
-                worldHolder.TryGet(chunkPosition, out Chunk chunk )&& chunk.IsLoaded)
+            if (worldHolder.TryGet(chunkPosition + Vector2Int.right, out Chunk right) && right.isLoaded &&
+                worldHolder.TryGet(chunkPosition + Vector2Int.left, out Chunk left) && left.isLoaded &&
+                worldHolder.TryGet(chunkPosition + Vector2Int.up, out Chunk forward) && forward.isLoaded &&
+                worldHolder.TryGet(chunkPosition + Vector2Int.down, out Chunk back) && back.isLoaded &&
+                worldHolder.TryGet(chunkPosition, out Chunk chunk) && chunk.isLoaded)
             {
-                 Debug.Log("Spawn " + chunkPosition);
-                GameObject go = Instantiate(ChunkPrefab);
-                // go.transform.SetParent(transform);
-                go.transform.position = new Vector3(
-                    chunkPosition.x * GameSettings.CHUNK_SIZE,
-                    0,
-                    chunkPosition.y * GameSettings.CHUNK_SIZE);
-                ChunkViewRenderer viewRenderer = go.GetComponent<ChunkViewRenderer>();
-                viewRenderer.Initial(chunk.chunk, right.chunk, left.chunk, forward.chunk, back.chunk);
-                viewRenderer.ChunkReadyCallBack = ChunkReadyCallBack;
+                Debug.Log("Spawn " + chunkPosition);
+                if (chunk.view == null)
+                {
+                    GameObject go = Instantiate(ChunkPrefab);
+                    // go.transform.SetParent(transform);
+                    // go.transform.position = new Vector3(
+                    //     chunkPosition.x * GameSettings.CHUNK_SIZE,
+                    //     0,
+                    //     chunkPosition.y * GameSettings.CHUNK_SIZE);
+                    chunk.view = go.GetComponent<ChunkViewRenderer>();
+                    chunk.view.ChunkReadyCallBack = ChunkReadyCallBack;
+                }
+
+                chunk.view.Initial(chunk.chunk, right.chunk, left.chunk, forward.chunk, back.chunk);
                 // go.AddComponent<NetworkIdentity>();
                 // chunks.Add(go);
-                chunk.view = viewRenderer;
+
+
                 //NetworkServer.Spawn(go);
                 return true;
             }

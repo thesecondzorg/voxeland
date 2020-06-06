@@ -18,6 +18,18 @@ namespace Client
         // Start is called before the first frame update
         void Start()
         {
+            meshRenderer = GetComponent<MeshRenderer>();
+            meshRenderer.material.SetVector("_TextureIndex",
+                new Vector4((int) meshBuilder.blockId.Id, meshBuilder.damage));
+        }
+
+        // Update is called once per frame
+        void Update()
+        {
+        }
+
+        public void Reload()
+        {
             Mesh mesh = new Mesh
             {
                 vertices = meshBuilder.vertices,
@@ -32,15 +44,6 @@ namespace Client
 
             collider = GetComponent<MeshCollider>();
             collider.sharedMesh = mesh;
-
-            meshRenderer = GetComponent<MeshRenderer>();
-            meshRenderer.material.SetVector("_TextureIndex",
-                new Vector4((int) meshBuilder.blockId.Id, meshBuilder.damage));
-        }
-
-        // Update is called once per frame
-        void Update()
-        {
         }
     }
 }

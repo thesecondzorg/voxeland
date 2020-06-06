@@ -1,4 +1,5 @@
 using System;
+using Mirror;
 using Test;
 using Test.Map;
 using UnityEngine;
@@ -12,11 +13,12 @@ namespace Client
         private Transform selectoionTransform;
         [SerializeField] private GameObject aim;
         private Nullable<Vector3> selectedPoint;
-        
-        [SerializeField]public WorldHolder worldHolder;
+
+        public ChunksHolder worldHolder;
 
         void Start()
         {
+            worldHolder = GetComponent<ChunkLoaderSystem>().worldHolder;
             aim = GameObject.Find("AimImage");
             aim.SetActive(true);
             playerCamera = Camera.main;
@@ -27,32 +29,47 @@ namespace Client
         private void Update()
         {
             Select();
-            MainAction();
+            if (Input.GetMouseButton(0))
+            {
+                MainAction();
+            }
+
+            if (Input.GetMouseButton(1))
+            {
+                SecondAction();
+            }
         }
 
         void MainAction()
         {
-            if (Input.GetMouseButton(0))
+            if (selectedPoint.HasValue)
             {
-                if (selectedPoint.HasValue)
+                Debug.Log(selectedPoint.Value);
+
+                Vector2Int chunkPosition = GameSettings.ToChunkPos(selectedPoint.Value);
+                if (worldHolder.TryGet(chunkPosition, out Chunk chunk))
                 {
-                    Vector2Int chunkPosition = GameSettings.ToChunkPos(selectedPoint.Value);
-                    if (worldHolder.TryGet(chunkPosition, out LoadedChunk chunk))
+                    Vector3Int inChunkPos = GameSettings.ToInChunkPos(selectedPoint.Value);
+                    BlockId blockId = chunk.chunk.GetId(inChunkPos);
+                    Debug.Log(blockId);
+                    NetworkClient.Send(new BlockUpdateRequest
                     {
-                        Vector3Int inChunkPos = GameSettings.ToInChunkPos(selectedPoint.Value);
-                        BlockId blockId = chunk.ChunkData.GetId(inChunkPos);
-                        Debug.Log(blockId);
-                    }
+                        chunkPosition = chunkPosition,
+                        inChunkPosition = inChunkPos,
+                        blockId = BlockId.AIR
+                    });
                 }
             }
         }
 
-        
-        
+        void SecondAction()
+        {
+        }
+
         void Select()
         {
             Ray ray = playerCamera.ScreenPointToRay(Input.mousePosition);
-            if (Physics.Raycast(ray, out RaycastHit hit, 10, 1<<8))
+            if (Physics.Raycast(ray, out RaycastHit hit, 10, 1 << 8))
             {
                 if (hit.collider != null)
                 {
@@ -62,7 +79,6 @@ namespace Client
                     selectedPoint = new Vector3(Mathf.Round(point.x), Mathf.Round(point.y), Mathf.Round(point.z)) -
                                     hit.normal;
                     selectoionTransform.position = selectedPoint.Value;
-                    // Debug.Log("hit: " + point + " " + hit.normal);
                 }
                 else
                 {
@@ -74,5 +90,12 @@ namespace Client
                 selectoionTransform.gameObject.SetActive(false);
             }
         }
+    }
+
+    public class BlockUpdateRequest : MessageBase
+    {
+        public Vector2Int chunkPosition;
+        public Vector3Int inChunkPosition;
+        public BlockId blockId;
     }
 }

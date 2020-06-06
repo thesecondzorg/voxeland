@@ -11,97 +11,13 @@ using UnityEngine.Rendering;
 
 namespace Client
 {
-    public enum ChunkRenderState
-    {
-        None,
-        Started,
-        Done
-    }
-
-    public class Chunk
-    {
-        public ChunkData chunk;
-        public ChunkViewRenderer view;
-        private int receivedParts = 0;
-        private ChunkData tmpBatches;
-
-        public ChunkRenderState renderState = ChunkRenderState.None;
-        public bool IsLoaded = false;
-
-        public bool Merge(ChunkPartMessage part)
-        {
-            if (tmpBatches == null)
-            {
-                try
-                {
-                    tmpBatches = new ChunkData
-                        {chunkPosition = part.chunkPosition, Slices = new ChunkSlice[part.height]};
-                }
-                catch (OverflowException e)
-                {
-                    Debug.LogError(part);
-                }
-            }
-
-            for (int i = 0; i < part.slices.Length; i++)
-            {
-                tmpBatches.Slices[part.shift + i] = part.slices[i];
-            }
-
-            receivedParts++;
-            for (int i = 0; i < tmpBatches.Slices.Length; i++)
-            {
-                if (tmpBatches.Slices[i] == null)
-                {
-                    return false;
-                }
-            }
-            chunk = tmpBatches;
-            tmpBatches = null;
-            IsLoaded = true;
-
-            return true;
-            // if (receivedParts == 16)
-            // {
-                // chunk = tmpBatches;
-                // tmpBatches = null;
-                // return true;
-            // }
-
-            return false;
-        }
-    }
-
-    public class ChunksHolder
-    {
-        public Dictionary<Vector2Int, Chunk> loadedChunks = new Dictionary<Vector2Int, Chunk>();
-
-        public bool TryGet(Vector2Int position, out Chunk chunk)
-        {
-            return loadedChunks.TryGetValue(position, out chunk);
-        }
-
-        public void Set(Vector2Int chunkPosition, Chunk chunk)
-        {
-            loadedChunks[chunkPosition] = chunk;
-        }
-
-        public void Delete(Vector2Int position)
-        {
-            if (loadedChunks.ContainsKey(position))
-            {
-                loadedChunks.Remove(position);
-            }
-        }
-    }
-
     public class ChunkLoaderSystem : NetworkBehaviour
     {
         private int playerVisibility = 5;
         [SerializeField] private WorldRenderSystem renderSystem;
 
         // private WorldHolder worldHolder;
-        private ChunksHolder worldHolder = new ChunksHolder();
+        public ChunksHolder worldHolder = new ChunksHolder();
 
         // private Dictionary<uint, PlayerConnectionInfo> playerInfos = new Dictionary<uint, PlayerConnectionInfo>();
         [SerializeField] private PlayerInputSystem playerInput;
@@ -110,11 +26,19 @@ namespace Client
         private Vector3 playerPos;
         private Nullable<Vector3> playerPosToSet;
 
-        public void OnDestroy()
+        public void OnDisable()
         {
             if (renderSystem != null)
             {
                 renderSystem.Stop();
+            }
+            
+            foreach (KeyValuePair<Vector2Int,Chunk> pair in worldHolder.loadedChunks)
+            {
+                if (pair.Value.renderState == ChunkRenderState.Done)
+                {
+                    pair.Value.view.Unload();
+                }
             }
         }
 
@@ -160,6 +84,7 @@ namespace Client
                 }
 
                 worldHolder.Delete(pos);
+                NetworkClient.Send(new UnsubscribeChunk {pos = pos});
             }
         }
 
@@ -213,7 +138,7 @@ namespace Client
         {
             if (worldHolder.TryGet(chunkPosition, out Chunk chunk))
             {
-                if (chunk.IsLoaded && chunk.renderState == ChunkRenderState.None)
+                if (chunk.isLoaded && chunk.renderState == ChunkRenderState.None)
                 {
                     renderSystem.ReceiveChunk(chunk.chunk);
                 }
@@ -233,8 +158,7 @@ namespace Client
                 pos = chunkPosition
             });
         }
-
-        private void OnReceiveChunk(NetworkConnection arg1, ChunkPartMessage part)
+        private void OnReceiveChunk(NetworkConnection conn, ChunkPartMessage part)
         {
             lock (worldHolder)
             {
@@ -244,6 +168,28 @@ namespace Client
                     worldHolder.Set(part.chunkPosition, loadedChunk);
                 }
 
+                if (loadedChunk.renderState == ChunkRenderState.Done)
+                {
+                    loadedChunk.Reload();
+                    Chunk chunk;
+                    if (worldHolder.TryGet(loadedChunk.chunk.chunkPosition + Vector2Int.left, out chunk))
+                    {
+                        renderSystem.ReceiveChunk(chunk.chunk);
+                    }
+                    if (worldHolder.TryGet(loadedChunk.chunk.chunkPosition + Vector2Int.right, out chunk))
+                    {
+                        renderSystem.ReceiveChunk(chunk.chunk);
+                    }
+                    if (worldHolder.TryGet(loadedChunk.chunk.chunkPosition + Vector2Int.up, out chunk))
+                    {
+                        renderSystem.ReceiveChunk(chunk.chunk);
+                    }
+                    if (worldHolder.TryGet(loadedChunk.chunk.chunkPosition + Vector2Int.down, out chunk))
+                    {
+                        renderSystem.ReceiveChunk(chunk.chunk);
+                    }
+                }
+                
                 try
                 {
                     bool done = loadedChunk.Merge(part);
@@ -292,6 +238,94 @@ namespace Client
             {
                 Debug.Log("Enable gravity");
                 GetComponent<PlayerInputSystem>().EnableGravity();
+            }
+        }
+    }
+
+    public class UnsubscribeChunk : MessageBase
+    {
+        public Vector2Int pos;
+    }
+
+    public enum ChunkRenderState
+    {
+        None,
+        Started,
+        Done,
+        Reload
+    }
+
+    public class Chunk
+    {
+        public ChunkData chunk;
+        public ChunkViewRenderer view;
+        private ChunkData tmpBatches;
+
+        public ChunkRenderState renderState = ChunkRenderState.None;
+        public bool isLoaded = false;
+
+        public bool Merge(ChunkPartMessage part)
+        {
+            if (tmpBatches == null)
+            {
+                try
+                {
+                    tmpBatches = new ChunkData
+                        {chunkPosition = part.chunkPosition, Slices = new ChunkSlice[part.height]};
+                }
+                catch (OverflowException e)
+                {
+                    Debug.LogError(part);
+                    return false;
+                }
+            }
+
+            for (int i = 0; i < part.slices.Length; i++)
+            {
+                tmpBatches.Slices[part.shift + i] = part.slices[i];
+            }
+            
+            for (int i = 0; i < tmpBatches.Slices.Length; i++)
+            {
+                if (tmpBatches.Slices[i] == null)
+                {
+                    return false;
+                }
+            }
+            chunk = tmpBatches;
+            tmpBatches = null;
+            isLoaded = true;
+            
+            return true;
+        }
+
+        public void Reload()
+        {
+            renderState = ChunkRenderState.None;
+            isLoaded = false;
+            
+        }
+    }
+
+    public class ChunksHolder
+    {
+        public Dictionary<Vector2Int, Chunk> loadedChunks = new Dictionary<Vector2Int, Chunk>();
+
+        public bool TryGet(Vector2Int position, out Chunk chunk)
+        {
+            return loadedChunks.TryGetValue(position, out chunk);
+        }
+
+        public void Set(Vector2Int chunkPosition, Chunk chunk)
+        {
+            loadedChunks[chunkPosition] = chunk;
+        }
+
+        public void Delete(Vector2Int position)
+        {
+            if (loadedChunks.ContainsKey(position))
+            {
+                loadedChunks.Remove(position);
             }
         }
     }
