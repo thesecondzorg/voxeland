@@ -42,8 +42,12 @@ namespace Client
             }
         }
 
-        public void Awake()
+        public override void OnStartClient()
         {
+            if (!isLocalPlayer)
+            {
+                return;
+            }
             renderSystem.worldHolder = worldHolder;
             renderSystem.ChunkReadyCallBack = ChunkReadyCallBack;
             NetworkClient.RegisterHandler<ChunkPartMessage>(OnReceiveChunk);
@@ -214,8 +218,8 @@ namespace Client
                 if (loadedChunk.chunk.chunkPosition == oldChunkPos)
                 {
                     // TODO spawn player prefab
-                    int height = loadedChunk.chunk.GetHeight((int) playerPos.x % GameSettings.CHUNK_SIZE,
-                        (int) playerPos.z % GameSettings.CHUNK_SIZE);
+                    Vector3Int inChunkPos = GameSettings.ToInChunkPos(playerPos);
+                    int height = loadedChunk.chunk.GetHeight(inChunkPos.x, inChunkPos.z);
                     playerPosToSet = new Vector3(playerPos.x, height + 2, playerPos.z);
                 }
             }

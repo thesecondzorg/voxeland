@@ -8,7 +8,7 @@ namespace Test
 {
     public class LoadedChunk
     {
-        private readonly List<uint> registeredClients = new List<uint>();
+        public readonly List<int> registeredClients = new List<int>();
 
      
         public bool IsLoaded => ChunkData != null;
@@ -16,17 +16,17 @@ namespace Test
 
         public ChunkData ChunkData;
 
-        public void RegisterClient(uint connectionId)
+        public void RegisterClient(int connectionId)
         {
             registeredClients.Add(connectionId);
         }
 
-        public bool IsRegistered(uint connectionId)
+        public bool IsRegistered(int connectionId)
         {
             return registeredClients.Contains(connectionId);
         }
 
-        public bool UnregisterClient(uint netIdentityNetId)
+        public bool UnregisterClient(int netIdentityNetId)
         {
             return registeredClients.Remove(netIdentityNetId);
         }
@@ -61,7 +61,7 @@ namespace Test
             return loadedChunks[pos];
         }
 
-        public bool RegisterClient(Vector2Int pos, uint pid)
+        public bool RegisterClient(Vector2Int pos, int pid)
         {
             if (TryGet(pos, out LoadedChunk chunk))
             {

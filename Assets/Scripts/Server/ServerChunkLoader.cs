@@ -62,16 +62,23 @@ namespace Server
 
             if (worldHolder.TryGet(msg.pos, out LoadedChunk chunk))
             {
-                chunk.UnregisterClient(conn.identity.netId);
+                chunk.UnregisterClient(conn.connectionId);
             }
         }
 
         private void OnRequestChunkMessage(NetworkConnection conn, RequestChunkMessage msg)
         {
             Debug.Log(msg.pos);
-            if (worldHolder.TryGet(msg.pos, out LoadedChunk chunk))
+            if (worldHolder.TryGet(msg.pos, out LoadedChunk chunk) && chunk.IsLoaded)
             {
-                conn.Send(chunk.ChunkData);
+                try
+                {
+                    BatchProcess(chunk.ChunkData, message => conn.Send(message));
+                }
+                catch (Exception e)
+                {
+                    throw e;
+                }
             }
             else
             {
@@ -86,7 +93,7 @@ namespace Server
             }
 
             registered[msg.pos].Add(conn);
-            // worldHolder.RegisterClient(msg.pos, conn);
+            worldHolder.RegisterClient(msg.pos, conn.connectionId);
         }
 
         private void OnReceiveGeneratedChunk(ChunkData obj)
@@ -94,50 +101,78 @@ namespace Server
             if (worldHolder.TryGet(obj.chunkPosition, out LoadedChunk chunk))
             {
                 chunk.ChunkData = obj;
+                SendChunk(chunk);
             }
-            if (registered.TryGetValue(obj.chunkPosition, out List<NetworkConnection> list))
+
+            // if (registered.TryGetValue(obj.chunkPosition, out List<NetworkConnection> list))
+            // {
+            //     SendChunk(obj, list);
+            // }
+        }
+
+        private void SendChunk(LoadedChunk chunk)
+        {
+            BatchProcess(chunk.ChunkData, message =>
             {
-                SendChunk(obj, list);
+                for (var i = 0; i < chunk.registeredClients.Count; i++)
+                {
+                    if (NetworkServer.connections.TryGetValue(chunk.registeredClients[i],
+                        out NetworkConnectionToClient conn))
+                    {
+                        conn.Send(message);
+                    }
+                }
+            });
+        }
+
+        private void BatchProcess(ChunkData obj, Action<ChunkPartMessage> handler)
+        {
+            int batchSize = 8;
+            List<ChunkSlice> slices = new List<ChunkSlice>();
+            int b = 0;
+            for (var i = 0; i < obj.Slices.Length; i++)
+            {
+                slices.Add(obj.Slices[i]);
+                if (slices.Count == batchSize)
+                {
+                    ChunkPartMessage message = new ChunkPartMessage
+                    {
+                        chunkPosition = obj.chunkPosition,
+                        height = obj.Slices.Length,
+                        shift = b,
+                        slices = slices.ToArray()
+                    };
+                    handler.Invoke(message);
+                    b = i + 1;
+                    slices.Clear();
+                }
+            }
+
+            if (slices.Count > 0)
+            {
+                handler.Invoke(new ChunkPartMessage
+                {
+                    chunkPosition = obj.chunkPosition,
+                    height = obj.Slices.Length,
+                    shift = b,
+                    slices = slices.ToArray()
+                });
             }
         }
 
         private void SendChunk(ChunkData obj, List<NetworkConnection> list)
         {
-            for (int i = 0; i < 16; i++)
+            BatchProcess(obj, message =>
             {
-                ChunkPartMessage message = new ChunkPartMessage
+                foreach (NetworkConnection conn in list)
                 {
-                    chunkPosition = obj.chunkPosition,
-                    height = obj.Slices.Length,
-                    shift = i * 16,
-                    slices = new ChunkSlice [16]
-                };
-                for (int y = 0; y < 16; y++)
-                {
-                    int index0 = i * 16 + y;
-                    if (index0 >= obj.Height)
-                    {
-                        break;
-                    }
-
-                    message.slices[y] = obj.Slices[index0];
+                    conn.Send(message);
                 }
-                NetworkServer.SendToAll(message);
-                // foreach (NetworkConnection connection in list)
-                // {
-                // try
-                // {
-                // connection.Send(message);
-                // }
-                // catch (Exception e)
-                // {
-                // Debug.LogError("Unable to send " + obj.chunkPosition.ToString());
-                // Debug.LogError(e);
-                // }
-                // }
-            }
+
+                // NetworkServer.SendToAll(message);
+            });
         }
-        
+
         public void Stop()
         {
             chunkGeneratorSystem?.Stop();

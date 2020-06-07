@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Mirror;
+using UnityEngine;
 
 namespace Test.Map
 {
@@ -50,8 +51,16 @@ namespace Test.Map
                 return new BlockId {Id = singleBlock};
             }
             int shift = posY * size + posX;
-            uint id = blocks[shift];
-            return new BlockId {Id = id};
+            try
+            {
+                uint id = blocks[shift];
+                return new BlockId {Id = id};
+            }
+            catch ( Exception e)
+            {
+                Debug.LogError(shift);
+                throw e;
+            }
         }
 
         public BlockId Set(int x, int y, BlockId blockId)

@@ -3,6 +3,7 @@ using Mirror;
 using Test;
 using Test.Map;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Client
 {
@@ -12,6 +13,7 @@ namespace Client
         [SerializeField] private SelectionCube selectionCube;
         private Transform selectoionTransform;
         [SerializeField] private GameObject aim;
+        [SerializeField] private Text text; 
         private Nullable<Vector3> selectedPoint;
 
         public ChunksHolder worldHolder;
@@ -20,6 +22,7 @@ namespace Client
         {
             worldHolder = GetComponent<ChunkLoaderSystem>().worldHolder;
             aim = GameObject.Find("AimImage");
+            text = GameObject.Find("UnderCursorInfo").GetComponent<Text>();
             aim.SetActive(true);
             playerCamera = Camera.main;
             selectoionTransform = Instantiate(selectionCube.gameObject).transform;
@@ -47,9 +50,9 @@ namespace Client
                 Debug.Log(selectedPoint.Value);
 
                 Vector2Int chunkPosition = GameSettings.ToChunkPos(selectedPoint.Value);
+                Vector3Int inChunkPos = GameSettings.ToInChunkPos(selectedPoint.Value);
                 if (worldHolder.TryGet(chunkPosition, out Chunk chunk))
                 {
-                    Vector3Int inChunkPos = GameSettings.ToInChunkPos(selectedPoint.Value);
                     BlockId blockId = chunk.chunk.GetId(inChunkPos);
                     Debug.Log(blockId);
                     NetworkClient.Send(new BlockUpdateRequest
@@ -79,6 +82,9 @@ namespace Client
                     selectedPoint = new Vector3(Mathf.Round(point.x), Mathf.Round(point.y), Mathf.Round(point.z)) -
                                     hit.normal;
                     selectoionTransform.position = selectedPoint.Value;
+                    Vector2Int chunkPosition = GameSettings.ToChunkPos(selectedPoint.Value);
+                    Vector3Int inChunkPos = GameSettings.ToInChunkPos(selectedPoint.Value);
+                    text.text = point.ToString() + " \n " + chunkPosition.ToString() + " \n" + inChunkPos.ToString();
                 }
                 else
                 {

@@ -9,7 +9,9 @@ namespace Test
 
         public static Vector2Int ToChunkPos(Vector3 pos)
         {
-            return new Vector2Int((int) pos.x / CHUNK_SIZE, (int) pos.z / CHUNK_SIZE);
+            float x = pos.x >= 0 ? pos.x : pos.x - CHUNK_SIZE; 
+            float y = pos.z >= 0 ? pos.z : pos.z - CHUNK_SIZE; 
+            return new Vector2Int((int) x / CHUNK_SIZE, (int) y / CHUNK_SIZE);
         }
 
         public static Vector3Int ToInChunkPos(Vector3 pos)

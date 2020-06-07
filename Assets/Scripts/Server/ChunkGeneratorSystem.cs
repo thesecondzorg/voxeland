@@ -63,8 +63,13 @@ namespace Test
                             float heightVariation = biomeSpecification.MaxHeight - biomeSpecification.MinHeight;
                             float tx = (chunkPosition.x * GameSettings.CHUNK_SIZE + TerrainGenerator.Seed + x) / 50f;
                             float ty = (chunkPosition.y * GameSettings.CHUNK_SIZE + TerrainGenerator.Seed + y) / 50f;
-                            double height = Perlin.Fbm(tx, ty, 4) * heightVariation +
-                                            biomeSpecification.MinHeight;
+                            // double height = Perlin.Fbm(tx, ty, 4) * heightVariation +
+                            //                 biomeSpecification.MinHeight;
+                            double height = biomeSpecification.MinHeight;
+                            if (y == 0 && x == 0)
+                            {
+                                height++;
+                            }
                             // Debug.Log($"{tx}, {ty} : {height}");
                             for (int h = 0; h < height; h++)
                             {

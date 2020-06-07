@@ -42,8 +42,13 @@ namespace Client
             meshFilter = GetComponent<MeshFilter>();
             meshFilter.mesh = mesh;
 
-            collider = GetComponent<MeshCollider>();
-            collider.sharedMesh = mesh;
+            foreach (MeshCollider meshCollider in gameObject.GetComponents<MeshCollider>())
+            {
+                Destroy(meshCollider);
+            }
+            
+            collider = gameObject.AddComponent<MeshCollider>();
+            // collider.sharedMesh = mesh;
         }
     }
 }
