@@ -1,8 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using Test;
-using Test.Netowrker;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace Client
 {
@@ -14,6 +10,8 @@ namespace Client
         public Material Material;
 
         public ChunkViewRenderer.MeshBuilder meshBuilder;
+
+        public bool Notify = false; 
 
         // Start is called before the first frame update
         void Start()
@@ -49,6 +47,7 @@ namespace Client
             
             collider = gameObject.AddComponent<MeshCollider>();
             // collider.sharedMesh = mesh;
+            Notify = true;
         }
     }
 }

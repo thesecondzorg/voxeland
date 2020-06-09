@@ -83,5 +83,12 @@ namespace Client
 
             return false;
         }
+
+        public void ReloadChunk(Vector2Int chunkPos)
+        {
+            if (!worldHolder.TryGet(chunkPos, out Chunk chunk)) return;
+            chunk.Reload(true);
+            ReceiveChunk(chunk.chunk);
+        }
     }
 }

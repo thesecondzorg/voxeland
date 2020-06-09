@@ -33,8 +33,11 @@ public class GameNetworkManager : NetworkManager
         base.OnStartServer();
         map = new ServerChunkLoader(terrainGenerator);
         map.Start();
-        // NetworkServer.RegisterHandler<RequestChunkMessage>(OnRequestChunkMessage);
     }
 
-    
+    public override void OnStopServer()
+    {
+        base.OnStopServer();
+        map.Stop();
+    }
 }

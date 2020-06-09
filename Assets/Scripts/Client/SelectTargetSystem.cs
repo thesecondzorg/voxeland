@@ -13,7 +13,7 @@ namespace Client
         [SerializeField] private SelectionCube selectionCube;
         private Transform selectoionTransform;
         [SerializeField] private GameObject aim;
-        [SerializeField] private Text text; 
+        [SerializeField] private Text text;
         private Nullable<Vector3> selectedPoint;
 
         public ChunksHolder worldHolder;
@@ -71,20 +71,33 @@ namespace Client
 
         void Select()
         {
-            Ray ray = playerCamera.ScreenPointToRay(Input.mousePosition);
+            Vector3 mousePosition = Input.mousePosition;
+            Ray ray = playerCamera.ScreenPointToRay(new Vector3(Screen.width / 2, Screen.height / 2));
             if (Physics.Raycast(ray, out RaycastHit hit, 10, 1 << 8))
             {
                 if (hit.collider != null)
                 {
-                    // Debug.DrawLine(hit.point, hit.point + hit.normal);
                     Vector3 point = hit.point;
                     selectoionTransform.gameObject.SetActive(true);
-                    selectedPoint = new Vector3(Mathf.Round(point.x), Mathf.Round(point.y), Mathf.Round(point.z)) -
-                                    hit.normal;
+                 
+                    selectedPoint =
+                        new Vector3(
+                            hit.normal.x == 0f ? Mathf.Round(point.x) : (point.x + hit.normal.x * 0.02f), 
+                            hit.normal.y == 0f ? Mathf.Round(point.y) : (point.y + hit.normal.y * 0.02f), 
+                            hit.normal.z == 0f ? Mathf.Round(point.z) : (point.z + hit.normal.z * 0.02f));
                     selectoionTransform.position = selectedPoint.Value;
+
+                    Debug.DrawLine(selectedPoint.Value, selectedPoint.Value + hit.normal);
+                    // -0.5,70,0 : 1,0,0
+                    // 0,70,0    : 0,90,0
+
+                    // 0,70,-0.5  : 0,0,-1
+                    // 0,70,0    : 0,0,0
+                    selectoionTransform.rotation =
+                        Quaternion.FromToRotation(selectoionTransform.up, hit.normal) * selectoionTransform.rotation;
                     Vector2Int chunkPosition = GameSettings.ToChunkPos(selectedPoint.Value);
                     Vector3Int inChunkPos = GameSettings.ToInChunkPos(selectedPoint.Value);
-                    text.text = point.ToString() + " \n " + chunkPosition.ToString() + " \n" + inChunkPos.ToString();
+                    text.text = point.ToString() + " \n " + hit.normal + "\n " + selectedPoint.Value;
                 }
                 else
                 {

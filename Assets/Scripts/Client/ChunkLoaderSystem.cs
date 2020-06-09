@@ -32,8 +32,8 @@ namespace Client
             {
                 renderSystem.Stop();
             }
-            
-            foreach (KeyValuePair<Vector2Int,Chunk> pair in worldHolder.loadedChunks)
+
+            foreach (KeyValuePair<Vector2Int, Chunk> pair in worldHolder.loadedChunks)
             {
                 if (pair.Value.renderState == ChunkRenderState.Done)
                 {
@@ -48,11 +48,28 @@ namespace Client
             {
                 return;
             }
+
             renderSystem.worldHolder = worldHolder;
             renderSystem.ChunkReadyCallBack = ChunkReadyCallBack;
             NetworkClient.RegisterHandler<ChunkPartMessage>(OnReceiveChunk);
+            NetworkClient.RegisterHandler<BlockUpdateRequest>(OnBlockUpdateRequest);
             Debug.Log("Start client load map");
-            // RequestChunks(0, Vector2Int.one);
+        }
+
+        private void OnBlockUpdateRequest(BlockUpdateRequest obj)
+        {
+            lock (worldHolder)
+            {
+                if (!worldHolder.TryGet(obj.chunkPosition, out Chunk chunk)) return;
+                Vector3Int inChunkPosition = obj.inChunkPosition;
+                chunk.chunk.Slices[inChunkPosition.y].Set(inChunkPosition.x, inChunkPosition.z, obj.blockId);
+                chunk.Reload(true);
+                renderSystem.ReceiveChunk(chunk.chunk);
+                renderSystem.ReloadChunk(obj.chunkPosition + Vector2Int.left);
+                renderSystem.ReloadChunk(obj.chunkPosition + Vector2Int.right);
+                renderSystem.ReloadChunk(obj.chunkPosition + Vector2Int.down);
+                renderSystem.ReloadChunk(obj.chunkPosition + Vector2Int.up);
+            }
         }
 
         private void Update()
@@ -67,6 +84,7 @@ namespace Client
                 {
                     RequestChunks(newChunkPos);
                 }
+
                 oldChunkPos = newChunkPos;
             }
 
@@ -162,6 +180,7 @@ namespace Client
                 pos = chunkPosition
             });
         }
+
         private void OnReceiveChunk(NetworkConnection conn, ChunkPartMessage part)
         {
             lock (worldHolder)
@@ -180,20 +199,23 @@ namespace Client
                     {
                         renderSystem.ReceiveChunk(chunk.chunk);
                     }
+
                     if (worldHolder.TryGet(loadedChunk.chunk.chunkPosition + Vector2Int.right, out chunk))
                     {
                         renderSystem.ReceiveChunk(chunk.chunk);
                     }
+
                     if (worldHolder.TryGet(loadedChunk.chunk.chunkPosition + Vector2Int.up, out chunk))
                     {
                         renderSystem.ReceiveChunk(chunk.chunk);
                     }
+
                     if (worldHolder.TryGet(loadedChunk.chunk.chunkPosition + Vector2Int.down, out chunk))
                     {
                         renderSystem.ReceiveChunk(chunk.chunk);
                     }
                 }
-                
+
                 try
                 {
                     bool done = loadedChunk.Merge(part);
@@ -288,7 +310,7 @@ namespace Client
             {
                 tmpBatches.Slices[part.shift + i] = part.slices[i];
             }
-            
+
             for (int i = 0; i < tmpBatches.Slices.Length; i++)
             {
                 if (tmpBatches.Slices[i] == null)
@@ -296,18 +318,19 @@ namespace Client
                     return false;
                 }
             }
+
             chunk = tmpBatches;
             tmpBatches = null;
             isLoaded = true;
-            
+
             return true;
         }
 
-        public void Reload()
+        public void Reload(bool loaded = false)
         {
+            Debug.Log("Reload chunk " + chunk.chunkPosition);
             renderState = ChunkRenderState.None;
-            isLoaded = false;
-            
+            isLoaded = loaded;
         }
     }
 

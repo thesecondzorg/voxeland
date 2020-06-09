@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using Client;
 using Mirror;
 using UnityEngine;
 
@@ -14,7 +15,7 @@ public class PlayerInputSystem : NetworkBehaviour
     public Camera playerCamera;
     public Transform playerHead;
     public float lookSpeed = 2.0f;
-    public float lookXLimit = 45.0f;
+    public float lookXLimit = 75.0f;
 
     [SerializeField] private CharacterController characterController;
     private Vector3 moveDirection = Vector3.zero;
@@ -25,7 +26,7 @@ public class PlayerInputSystem : NetworkBehaviour
     private GameObject[] inventory;
     private int selected;
     private float gravityTmp = 20.0f;
-
+    private bool lockLook = false;
     private Nullable<Vector3> newPosition;
 
     // Start is called before the first frame update
@@ -33,6 +34,7 @@ public class PlayerInputSystem : NetworkBehaviour
     {
         if (isLocalPlayer)
         {
+            
             playerCamera = Camera.main;
             Camera.main.orthographic = false;
             Camera.main.transform.SetParent(playerHead.transform);
@@ -43,6 +45,13 @@ public class PlayerInputSystem : NetworkBehaviour
             Cursor.visible = false;
             gravityTmp = gravity;
             gravity = 0;
+        }
+        else
+        {
+            foreach (SelectTargetSystem component in gameObject.GetComponents<SelectTargetSystem>())
+            {
+                Destroy(component);
+            }
         }
     }
 
@@ -66,16 +75,22 @@ public class PlayerInputSystem : NetworkBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (!isLocalPlayer)
+        if (!isLocalPlayer )
         {
             return;
         }
 
-        if (Input.GetKeyUp(KeyCode.Escape))
+        if (Input.GetKeyUp(KeyCode.L))
         {
             
             Cursor.lockState = Cursor.lockState == CursorLockMode.Locked ? CursorLockMode.Confined : CursorLockMode.Locked;
             Cursor.visible = !Cursor.visible ;
+            lockLook = !lockLook;
+        }
+
+        if (lockLook)
+        {
+            return;
         }
         
         if (newPosition.HasValue)

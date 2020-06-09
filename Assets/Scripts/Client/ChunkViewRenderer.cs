@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Threading;
 using Map;
@@ -8,6 +9,7 @@ using Test;
 using Test.Map;
 using Test.Netowrker;
 using UnityEngine;
+using UnityEngine.PlayerLoop;
 
 namespace Client
 {
@@ -40,10 +42,8 @@ namespace Client
                 ChunkData.chunkPosition.y * GameSettings.CHUNK_SIZE);
             Debug.Log("Submit processing " + ChunkData.chunkPosition);
             renderStartTime = Time.fixedTime;
-            
         }
-
-        // Update is called once per frame
+        
         void Update()
         {
             lock (ChunkData)
@@ -55,12 +55,18 @@ namespace Client
                         UpdateCollider updateCollider = part.Value.gameObject.AddComponent<UpdateCollider>();
                         updateCollider.State = enableColliderTargetStatus.Value;
                     }
-
                     enableColliderTargetStatus = null;
                 }
             }
 
-           
+            if (parts.Values.All(p => p.Notify))
+            {
+                foreach (RenderChunkPart part in parts.Values)
+                {
+                    part.Notify = false;
+                }
+                ChunkReadyCallBack.Invoke(ChunkData.chunkPosition, this);
+            }
         }
 
         private void FixedUpdate()
@@ -70,7 +76,6 @@ namespace Client
                 ready = true;
                 Debug.Log("Start rendering " + ChunkData.chunkPosition + "  " + view.mesh.Count);
                 RenderChunk(ChunkData.chunkPosition, view);
-                ChunkReadyCallBack.Invoke(ChunkData.chunkPosition, this);
                 Debug.Log("Chunk " + ChunkData.chunkPosition + " rendered in " + (Time.fixedTime - renderStartTime));
             }
         }

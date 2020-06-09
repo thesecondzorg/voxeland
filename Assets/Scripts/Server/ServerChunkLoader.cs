@@ -52,7 +52,8 @@ namespace Server
                 chunk.ChunkData.Slices[msg.inChunkPosition.y]
                     .Set(msg.inChunkPosition.x, msg.inChunkPosition.z, msg.blockId);
                 // FIXME we should send update request only
-                OnReceiveGeneratedChunk(chunk.ChunkData);
+                NetworkServer.SendToAll(msg);
+                //OnReceiveGeneratedChunk(chunk.ChunkData);
             }
         }
 
@@ -103,11 +104,6 @@ namespace Server
                 chunk.ChunkData = obj;
                 SendChunk(chunk);
             }
-
-            // if (registered.TryGetValue(obj.chunkPosition, out List<NetworkConnection> list))
-            // {
-            //     SendChunk(obj, list);
-            // }
         }
 
         private void SendChunk(LoadedChunk chunk)
@@ -158,19 +154,6 @@ namespace Server
                     slices = slices.ToArray()
                 });
             }
-        }
-
-        private void SendChunk(ChunkData obj, List<NetworkConnection> list)
-        {
-            BatchProcess(obj, message =>
-            {
-                foreach (NetworkConnection conn in list)
-                {
-                    conn.Send(message);
-                }
-
-                // NetworkServer.SendToAll(message);
-            });
         }
 
         public void Stop()
