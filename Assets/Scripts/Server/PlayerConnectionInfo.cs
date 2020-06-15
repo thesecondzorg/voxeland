@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Mirror;
-using Test.Map;
+using Map;
 using UnityEngine;
 
 namespace Test.Netowrker

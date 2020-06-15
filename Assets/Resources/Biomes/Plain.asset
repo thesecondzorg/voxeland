@@ -15,5 +15,5 @@ MonoBehaviour:
   BiomeId: 0
   Name: Plain
   MinHeight: 70
-  MaxHeight: 80
+  MaxHeight: 120
   topBlock: {fileID: 11400000, guid: 9fa0b2ba3f2de4822916b284c52c807c, type: 2}

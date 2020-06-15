@@ -40,7 +40,7 @@ namespace Client
                 ChunkData.chunkPosition.x * GameSettings.CHUNK_SIZE,
                 0,
                 ChunkData.chunkPosition.y * GameSettings.CHUNK_SIZE);
-            Debug.Log("Submit processing " + ChunkData.chunkPosition);
+            // Debug.Log("Submit processing " + ChunkData.chunkPosition);
             renderStartTime = Time.fixedTime;
         }
         
@@ -74,9 +74,9 @@ namespace Client
             if (!ready && view != null)
             {
                 ready = true;
-                Debug.Log("Start rendering " + ChunkData.chunkPosition + "  " + view.mesh.Count);
+                // Debug.Log("Start rendering " + ChunkData.chunkPosition + "  " + view.mesh.Count);
                 RenderChunk(ChunkData.chunkPosition, view);
-                Debug.Log("Chunk " + ChunkData.chunkPosition + " rendered in " + (Time.fixedTime - renderStartTime));
+                // Debug.Log("Chunk " + ChunkData.chunkPosition + " rendered in " + (Time.fixedTime - renderStartTime));
             }
         }
 
@@ -216,7 +216,7 @@ namespace Client
             try
             {
                 view = GenObjectsView();
-                Debug.Log("Processing finished " + ChunkData.chunkPosition);
+                // Debug.Log("Processing finished " + ChunkData.chunkPosition);
             }
             catch (Exception e)
             {

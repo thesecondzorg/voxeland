@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using Client;
+using Map;
 using Server;
 using Test.Map;
 using UnityEngine;
@@ -75,6 +77,19 @@ namespace Test
         public bool Contains(Vector2Int pos)
         {
             return loadedChunks.ContainsKey(pos);
+        }
+
+        public void Remove(Vector2Int msgPos)
+        {
+            loadedChunks.Remove(msgPos);
+        }
+
+        public void SaveAll(Action<ChunkData> save)
+        {
+            foreach (LoadedChunk loadedChunk in loadedChunks.Values)
+            {
+                save.Invoke(loadedChunk.ChunkData);
+            }
         }
     }
 }

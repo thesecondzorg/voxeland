@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Map;
 using Mirror;
 using Server;
 using Test;
@@ -13,7 +14,7 @@ namespace Client
 {
     public class ChunkLoaderSystem : NetworkBehaviour
     {
-        private int playerVisibility = 5;
+        private int playerVisibility = 10;
         [SerializeField] private WorldRenderSystem renderSystem;
 
         // private WorldHolder worldHolder;
@@ -62,7 +63,7 @@ namespace Client
             {
                 if (!worldHolder.TryGet(obj.chunkPosition, out Chunk chunk)) return;
                 Vector3Int inChunkPosition = obj.inChunkPosition;
-                chunk.chunk.Slices[inChunkPosition.y].Set(inChunkPosition.x, inChunkPosition.z, obj.blockId);
+                chunk.chunk.slices[inChunkPosition.y].Set(inChunkPosition.x, inChunkPosition.z, obj.blockId);
                 chunk.Reload(true);
                 renderSystem.ReceiveChunk(chunk.chunk);
                 renderSystem.ReloadChunk(obj.chunkPosition + Vector2Int.left);
@@ -74,11 +75,12 @@ namespace Client
 
         private void Update()
         {
+            
             playerPos = transform.position;
             Vector2Int newChunkPos = new Vector2Int(
                 (int) (playerPos.x / GameSettings.CHUNK_SIZE),
                 (int) (playerPos.z / GameSettings.CHUNK_SIZE));
-            if (!oldChunkPos.HasValue || newChunkPos != oldChunkPos.Value)
+            if (!oldChunkPos.HasValue || Vector2Int.Distance(newChunkPos , oldChunkPos.Value) > 2)
             {
                 lock (worldHolder)
                 {
@@ -118,7 +120,6 @@ namespace Client
             }
 
             List<Vector2Int> chunksToLoad = new List<Vector2Int>();
-            Debug.Log("Client requested chunks");
             chunksToLoad.Add(centerChunk);
 
             for (int x = 1; x < playerVisibility; x++)
@@ -167,7 +168,7 @@ namespace Client
             }
             else
             {
-                Debug.Log("Request chunk " + chunkPosition);
+                // Debug.Log("Request chunk " + chunkPosition);
                 worldHolder.Set(chunkPosition, new Chunk());
                 CmdLoadChunk(chunkPosition);
             }
@@ -297,7 +298,7 @@ namespace Client
                 try
                 {
                     tmpBatches = new ChunkData
-                        {chunkPosition = part.chunkPosition, Slices = new ChunkSlice[part.height]};
+                        {chunkPosition = part.chunkPosition, slices = new ChunkSlice[part.height]};
                 }
                 catch (OverflowException e)
                 {
@@ -308,12 +309,12 @@ namespace Client
 
             for (int i = 0; i < part.slices.Length; i++)
             {
-                tmpBatches.Slices[part.shift + i] = part.slices[i];
+                tmpBatches.slices[part.shift + i] = part.slices[i];
             }
 
-            for (int i = 0; i < tmpBatches.Slices.Length; i++)
+            for (int i = 0; i < tmpBatches.slices.Length; i++)
             {
-                if (tmpBatches.Slices[i] == null)
+                if (tmpBatches.slices[i] == null)
                 {
                     return false;
                 }

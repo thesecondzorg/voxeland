@@ -46,4 +46,3 @@ MonoBehaviour:
   ChunkPart: {fileID: -1023646094705099988, guid: 27c950725079943f1b64a1705b3c9bdf,
     type: 3}
   terrainGenerator: {fileID: 11400000, guid: f7d06a6950fbc4bff818939ded340e9a, type: 2}
-  enableCollider: 0

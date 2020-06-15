@@ -8,11 +8,11 @@ namespace Test.Map
 {
     public class ChunkSlice : MessageBase
     {
-        public uint[] blocks;
+        public ushort[] blocks;
         public int size;
         public uint singleBlock = BlockId.AIR.Id;
         public bool isSingleBlock = true;
-        
+
         public ChunkSlice()
         {
         }
@@ -20,7 +20,7 @@ namespace Test.Map
         public ChunkSlice(int chunkSize)
         {
             size = chunkSize;
-            
+
             // bits = new Dictionary<BlockId, BitArray>();
             // bits[BlockId.AIR] = new BitArray(size * size);
         }
@@ -50,13 +50,14 @@ namespace Test.Map
             {
                 return new BlockId {Id = singleBlock};
             }
+
             int shift = posY * size + posX;
             try
             {
-                uint id = blocks[shift];
-                return new BlockId {Id = id};
+                ushort id = blocks[shift];
+                return new BlockId {Id = (uint) id};
             }
-            catch ( Exception e)
+            catch (Exception e)
             {
                 Debug.LogError(shift);
                 throw e;
@@ -73,12 +74,67 @@ namespace Test.Map
             isSingleBlock = false;
             if (blocks == null)
             {
-                blocks = new uint[size*size];
+                blocks = new ushort[size * size];
             }
+
             int shift = y * size + x;
-            uint oldBlock = blocks[shift];
-            blocks[shift] = blockId.Id;
-            return new BlockId {Id = oldBlock};
+            ushort oldBlock = blocks[shift];
+            blocks[shift] = (ushort) blockId.Id;
+            return new BlockId {Id = (uint) oldBlock};
+        }
+
+        public override void Deserialize(NetworkReader reader)
+        {
+            isSingleBlock = reader.ReadBoolean();
+            if (isSingleBlock)
+            {
+                singleBlock = reader.ReadUInt16();
+            }
+            else
+            {
+                blocks = new ushort[reader.ReadInt32()];
+                int shift = 0;
+
+                do
+                {
+                    ushort counter = reader.ReadUInt16();
+                    ushort currentBlock = reader.ReadUInt16();
+                    for (int i = 0; i < counter; i++)
+                    {
+                        blocks[shift + i] = currentBlock;
+                    }
+                    shift += counter;
+                } while (shift < blocks.Length);
+            }
+        }
+
+        public override void Serialize(NetworkWriter writer)
+        {
+            if (isSingleBlock)
+            {
+                writer.WriteBoolean(true);
+                writer.WriteUInt32(singleBlock);
+            }
+            else
+            {
+                writer.WriteBoolean(false);
+                writer.WriteInt32(blocks.Length);
+                // ushort[] buffer = new ushort[blocks.Length];
+                ushort counter = 0;
+                ushort currentBlock = blocks[0];
+                for (var i = 0; i < blocks.Length; i++)
+                {
+                    if (blocks[i] != currentBlock)
+                    {
+                        writer.WriteUInt16(counter);
+                        writer.WriteUInt16(currentBlock);
+                        counter = 0;
+                        currentBlock = blocks[i];
+                    }
+
+                    counter++;
+                }
+            }
         }
     }
 }

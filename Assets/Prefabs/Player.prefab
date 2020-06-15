@@ -174,7 +174,6 @@ GameObject:
   - component: {fileID: 8693322153216881400}
   - component: {fileID: 6562994509771361034}
   - component: {fileID: 3907498359128017918}
-  - component: {fileID: -5508346782942467329}
   m_Layer: 9
   m_Name: Player
   m_TagString: Untagged
@@ -304,7 +303,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ChunkPrefab: {fileID: 6466441274200278390, guid: 784a523d721624147873e08be6c1ea3e,
     type: 3}
-  worldHolder: {fileID: 11400000, guid: badc8d234e0bc4909a0ce6d858b1de03, type: 2}
 --- !u!114 &3907498359128017918
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -320,21 +318,4 @@ MonoBehaviour:
   selectionCube: {fileID: -4200582674366488126, guid: 3d9810de0ceb948959701dcf2c3734b8,
     type: 3}
   aim: {fileID: 0}
-  worldHolder: {fileID: 11400000, guid: badc8d234e0bc4909a0ce6d858b1de03, type: 2}
---- !u!114 &-5508346782942467329
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5554087958771397873}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 172515602e62fb746b5d573b38a5fe58, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  isGlobal: 1
-  priority: 0
-  blendDistance: 0
-  weight: 1
-  sharedProfile: {fileID: 11400000, guid: 23730495022bf4b389a0aff42ee6dcdd, type: 2}
+  text: {fileID: 0}

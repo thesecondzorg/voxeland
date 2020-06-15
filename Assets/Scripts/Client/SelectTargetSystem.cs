@@ -15,6 +15,7 @@ namespace Client
         [SerializeField] private GameObject aim;
         [SerializeField] private Text text;
         private Nullable<Vector3> selectedPoint;
+        private Vector3 normal;
 
         public ChunksHolder worldHolder;
 
@@ -47,14 +48,14 @@ namespace Client
         {
             if (selectedPoint.HasValue)
             {
-                Debug.Log(selectedPoint.Value);
-
-                Vector2Int chunkPosition = GameSettings.ToChunkPos(selectedPoint.Value);
-                Vector3Int inChunkPos = GameSettings.ToInChunkPos(selectedPoint.Value);
+                Vector3 point = selectedPoint.Value - normal * 0.5f;
+                // Debug.Log(point);
+                Vector2Int chunkPosition = GameSettings.ToChunkPos(point);
+                Vector3Int inChunkPos = GameSettings.ToInChunkPos(new Vector3(Mathf.Ceil(point.x), Mathf.Ceil(point.y), Mathf.Ceil(point.z)));
                 if (worldHolder.TryGet(chunkPosition, out Chunk chunk))
                 {
                     BlockId blockId = chunk.chunk.GetId(inChunkPos);
-                    Debug.Log(blockId);
+                    // Debug.Log(blockId);
                     NetworkClient.Send(new BlockUpdateRequest
                     {
                         chunkPosition = chunkPosition,
@@ -78,13 +79,14 @@ namespace Client
                 if (hit.collider != null)
                 {
                     Vector3 point = hit.point;
+                    normal = hit.normal;
                     selectoionTransform.gameObject.SetActive(true);
                  
                     selectedPoint =
                         new Vector3(
-                            hit.normal.x == 0f ? Mathf.Round(point.x) : (point.x + hit.normal.x * 0.02f), 
-                            hit.normal.y == 0f ? Mathf.Round(point.y) : (point.y + hit.normal.y * 0.02f), 
-                            hit.normal.z == 0f ? Mathf.Round(point.z) : (point.z + hit.normal.z * 0.02f));
+                            hit.normal.x == 0f ? Mathf.Round(point.x) : (point.x + normal.x * 0.02f), 
+                            hit.normal.y == 0f ? Mathf.Round(point.y) : (point.y + normal.y * 0.02f), 
+                            hit.normal.z == 0f ? Mathf.Round(point.z) : (point.z + normal.z * 0.02f));
                     selectoionTransform.position = selectedPoint.Value;
 
                     Debug.DrawLine(selectedPoint.Value, selectedPoint.Value + hit.normal);
@@ -97,7 +99,7 @@ namespace Client
                         Quaternion.FromToRotation(selectoionTransform.up, hit.normal) * selectoionTransform.rotation;
                     Vector2Int chunkPosition = GameSettings.ToChunkPos(selectedPoint.Value);
                     Vector3Int inChunkPos = GameSettings.ToInChunkPos(selectedPoint.Value);
-                    text.text = point.ToString() + " \n " + hit.normal + "\n " + selectedPoint.Value;
+                    text.text = point.ToString() + " \n " + hit.normal + "\n " + selectedPoint.Value + "\n" + (selectedPoint.Value - normal * 0.5f);
                 }
                 else
                 {

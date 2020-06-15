@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Map;
+using Noise;
 using Test;
 using Test.Biomes;
 using Test.Map;
@@ -25,10 +26,11 @@ namespace Map
         [SerializeField] public Material TerrainMaterial;
         public Texture2DArray texture2DArray;
         float3 caveRate = new float3(1, 2, 1);
-
+        private OpenSimplex2S noiseGen; 
         public void InitAwake()
         {
             Seed = Random.Range(10, 10000);
+            noiseGen = new OpenSimplex2S(Seed);
             texture2DArray = new Texture2DArray(128, 128, Blocks.Count, TextureFormat.RGB24, false);
             for (int i = 0; i < Blocks.Count; i++)
             {
@@ -43,7 +45,37 @@ namespace Map
             TerrainMaterial.SetTexture("_TextureArray", texture2DArray);
         }
 
-       
+        public ChunkData GenerateNewChunk(Vector2Int chunkPosition)
+        {
+            ChunkSlice[] slices = new ChunkSlice[GameSettings.WORLD_HEIGHT];
+            for (int i = 0; i < GameSettings.WORLD_HEIGHT; i++)
+            {
+                slices[i] = new ChunkSlice(GameSettings.CHUNK_SIZE);
+            }
+
+            for (int x = 0; x < GameSettings.CHUNK_SIZE; x++)
+            {
+                float tx = (chunkPosition.x * GameSettings.CHUNK_SIZE  + x ) ;
+                for (int y = 0; y < GameSettings.CHUNK_SIZE; y++)
+                {
+                    BiomeSpecification biomeSpecification = resolveBiome(chunkPosition);
+                    float heightVariation = biomeSpecification.MaxHeight - biomeSpecification.MinHeight;
+                    float ty = (chunkPosition.y * GameSettings.CHUNK_SIZE  + y)  ;
+                    double height = Map.Perlin.Fbm(tx / 50, ty / 50, 5) *heightVariation+ biomeSpecification.MinHeight;
+                    for (int h = 0; h < height; h++)
+                    {
+                        BlockId blockId = Get(
+                            (float) height,
+                            new Vector3Int(chunkPosition.x * GameSettings.CHUNK_SIZE + x, h,
+                                chunkPosition.y * GameSettings.CHUNK_SIZE + y));
+                        slices[h].Set(x, y, blockId);
+                        // blocks[h * d + y * GameSettings.CHUNK_SIZE + x] = blockId.Id;
+                    }
+                }
+            }
+
+            return new ChunkData {slices = slices, chunkPosition = chunkPosition};
+        }
 
         public Vector3Int ToBlockInChunkPos(Vector2Int chunkPos, Vector3 pos)
         {
@@ -90,7 +122,9 @@ namespace Map
                 // float airNoise = Mathf.Abs(Perlin.Noise(blockGlobalPosition.x / 20f, blockGlobalPosition.y / 30f,
                 //     blockGlobalPosition.z / 20f));
                 //float airNoise = Mathf.Abs(noise.cnoise(new float3(blockGlobalPosition.x, blockGlobalPosition.y, blockGlobalPosition.z) / caveRate  + Seed));
-                if (noiseFbm(blockGlobalPosition) > 0.00035f)
+                // double airNoise = Fbm(blockGlobalPosition, 5);
+                double airNoise = 1;// noiseGen.Noise3_Classic(blockGlobalPosition.x, blockGlobalPosition.y, blockGlobalPosition.z);
+                if (airNoise > 0.05335f)
                 {
                     if (height - blockGlobalPosition.y < 5)
                     {
@@ -106,6 +140,22 @@ namespace Map
             return BlockId.AIR;
         }
 
+        public double Fbm(Vector3Int coord, int octave)
+        {
+            double f = 0.0;
+            float w = 0.5f;
+            for (int i = 0; i < octave; i++)
+            {
+                f += w * noiseGen.Noise3_XZBeforeY(coord.x, coord.y, coord.z);
+                coord *= 2;
+                w *= 0.5f;
+            }
+
+            return f;
+        }
+        
+        
+        
         float noiseFbm(Vector3 pos)
         {
             Vector3 p = pos * caveRate;
@@ -114,19 +164,19 @@ namespace Map
             {
                 r += Perlin.Noise(new Vector3(1 / (p.x + Seed / i), 1 / (p.y + Seed / i), 1 / (p.z + Seed / i)));
             }
+
             return Mathf.Abs(r / 5);
         }
 
-        float noise2Fbm(Vector3 pos)
+        float Noise2Fbm(float x, float y)
         {
-            float3 p = new float3(pos.x, pos.y, pos.z) / caveRate;
             float r = 0;
-            for (int i = 1; i <= 5; i++)
+            for (float i = 1; i <= 5; i++)
             {
-                r += noise.snoise(p + Seed / i);
+                r += Perlin.Noise(x/i + Seed, y / i + Seed);
             }
 
-            return Mathf.Abs(r);
+            return Mathf.Abs(r / 5);
         }
 
         public BlockInfo Get(Vector2Int chunkPosition, Vector3Int blockInChunkPosition)
@@ -139,7 +189,6 @@ namespace Map
                            * heightVariation
                            + biomeSpecification.MinHeight;
 
-            Debug.Log(height);
             if ((float) blockInChunkPosition.y <= height)
             {
                 return new BlockInfo

@@ -5,6 +5,7 @@ using Map;
 using Mirror;
 using Test;
 using Test.Map;
+using Map;
 using Test.Netowrker;
 using UnityEngine;
 
@@ -20,24 +21,23 @@ namespace Server
 
     public class ServerChunkLoader
     {
+        private ChunkSaveSystem chunkSaveSystem;
         private ChunkGeneratorSystem chunkGeneratorSystem;
         private TerrainGenerator terrainGenerator;
-        private WorldHolder worldHolder = new WorldHolder();
+        private WorldHolder worldHolder;
 
         Dictionary<Vector2Int, List<NetworkConnection>> registered =
             new Dictionary<Vector2Int, List<NetworkConnection>>();
 
-        private Dictionary<uint, PlayerConnectionInfo> playerInfos = new Dictionary<uint, PlayerConnectionInfo>();
-
         public ServerChunkLoader(TerrainGenerator terrainGenerator)
         {
-            this.chunkGeneratorSystem = chunkGeneratorSystem;
             this.terrainGenerator = terrainGenerator;
-            this.worldHolder = worldHolder;
         }
 
         public void Start()
         {
+            worldHolder = new WorldHolder();
+            chunkSaveSystem = new ChunkSaveSystem("world1");
             chunkGeneratorSystem = new ChunkGeneratorSystem(terrainGenerator, OnReceiveGeneratedChunk);
             chunkGeneratorSystem.Start();
             NetworkServer.RegisterHandler<RequestChunkMessage>(OnRequestChunkMessage);
@@ -49,10 +49,13 @@ namespace Server
         {
             if (worldHolder.TryGet(msg.chunkPosition, out LoadedChunk chunk))
             {
-                chunk.ChunkData.Slices[msg.inChunkPosition.y]
+                chunk.ChunkData.slices[msg.inChunkPosition.y]
                     .Set(msg.inChunkPosition.x, msg.inChunkPosition.z, msg.blockId);
                 // FIXME we should send update request only
-                NetworkServer.SendToAll(msg);
+                lock (this)
+                {
+                    NetworkServer.SendToAll(msg);
+                }
                 //OnReceiveGeneratedChunk(chunk.ChunkData);
             }
         }
@@ -64,17 +67,28 @@ namespace Server
             if (worldHolder.TryGet(msg.pos, out LoadedChunk chunk))
             {
                 chunk.UnregisterClient(conn.connectionId);
+                if (chunk.IsEmpty)
+                {
+                    worldHolder.Remove(msg.pos);
+                    chunkSaveSystem.Save(chunk.ChunkData);
+                }
             }
         }
 
         private void OnRequestChunkMessage(NetworkConnection conn, RequestChunkMessage msg)
         {
-            Debug.Log(msg.pos);
+            // Debug.Log(msg.pos);
             if (worldHolder.TryGet(msg.pos, out LoadedChunk chunk) && chunk.IsLoaded)
             {
                 try
                 {
-                    BatchProcess(chunk.ChunkData, message => conn.Send(message));
+                    BatchProcess(chunk.ChunkData, message =>
+                    {
+                        lock (this)
+                        {
+                            conn.Send(message);
+                        }
+                    });
                 }
                 catch (Exception e)
                 {
@@ -85,7 +99,7 @@ namespace Server
             {
                 chunk = new LoadedChunk();
                 worldHolder.Set(msg.pos, chunk);
-                chunkGeneratorSystem.RequestChunk(msg.pos);
+                chunkSaveSystem.RequestChunk(msg.pos, OnReceiveGeneratedChunk, chunkGeneratorSystem.RequestChunk);
             }
 
             if (!registered.ContainsKey(msg.pos))
@@ -115,7 +129,10 @@ namespace Server
                     if (NetworkServer.connections.TryGetValue(chunk.registeredClients[i],
                         out NetworkConnectionToClient conn))
                     {
-                        conn.Send(message);
+                        lock (this)
+                        {
+                            conn.Send(message);
+                        }
                     }
                 }
             });
@@ -123,18 +140,18 @@ namespace Server
 
         private void BatchProcess(ChunkData obj, Action<ChunkPartMessage> handler)
         {
-            int batchSize = 8;
+            int batchSize = 16;
             List<ChunkSlice> slices = new List<ChunkSlice>();
             int b = 0;
-            for (var i = 0; i < obj.Slices.Length; i++)
+            for (var i = 0; i < obj.slices.Length; i++)
             {
-                slices.Add(obj.Slices[i]);
+                slices.Add(obj.slices[i]);
                 if (slices.Count == batchSize)
                 {
                     ChunkPartMessage message = new ChunkPartMessage
                     {
                         chunkPosition = obj.chunkPosition,
-                        height = obj.Slices.Length,
+                        height = obj.slices.Length,
                         shift = b,
                         slices = slices.ToArray()
                     };
@@ -149,7 +166,7 @@ namespace Server
                 handler.Invoke(new ChunkPartMessage
                 {
                     chunkPosition = obj.chunkPosition,
-                    height = obj.Slices.Length,
+                    height = obj.slices.Length,
                     shift = b,
                     slices = slices.ToArray()
                 });
@@ -159,6 +176,7 @@ namespace Server
         public void Stop()
         {
             chunkGeneratorSystem?.Stop();
+            worldHolder.SaveAll(chunkSaveSystem.Save);
         }
     }
 }

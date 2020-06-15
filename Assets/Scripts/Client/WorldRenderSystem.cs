@@ -59,7 +59,7 @@ namespace Client
                 worldHolder.TryGet(chunkPosition + Vector2Int.down, out Chunk back) && back.isLoaded &&
                 worldHolder.TryGet(chunkPosition, out Chunk chunk) && chunk.isLoaded)
             {
-                Debug.Log("Spawn " + chunkPosition);
+                // Debug.Log("Spawn " + chunkPosition);
                 if (chunk.view == null)
                 {
                     GameObject go = Instantiate(ChunkPrefab);
