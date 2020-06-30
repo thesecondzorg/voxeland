@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Threading;
@@ -10,6 +11,7 @@ using Test.Map;
 using Test.Netowrker;
 using UnityEngine;
 using UnityEngine.PlayerLoop;
+using Debug = UnityEngine.Debug;
 
 namespace Client
 {
@@ -46,7 +48,16 @@ namespace Client
         
         void Update()
         {
-            lock (ChunkData)
+            if (!ready && view != null)
+            {
+                ready = true;
+                // Debug.Log("Start rendering " + ChunkData.chunkPosition + "  " + view.mesh.Count);
+                float t = Time.fixedTime;
+                RenderChunk(ChunkData.chunkPosition, view);
+                Debug.Log("Chunk " + ChunkData.chunkPosition  + " rendered in " +(Time.fixedTime - t)+ " with delay " +  ( t - renderStartTime) );
+            }
+            
+            // lock (ChunkData)
             {
                 if (ready && enableColliderTargetStatus.HasValue)
                 {
@@ -69,16 +80,6 @@ namespace Client
             }
         }
 
-        private void FixedUpdate()
-        {
-            if (!ready && view != null)
-            {
-                ready = true;
-                // Debug.Log("Start rendering " + ChunkData.chunkPosition + "  " + view.mesh.Count);
-                RenderChunk(ChunkData.chunkPosition, view);
-                // Debug.Log("Chunk " + ChunkData.chunkPosition + " rendered in " + (Time.fixedTime - renderStartTime));
-            }
-        }
 
         public void Initial(ChunkData chunk, ChunkData right, ChunkData left, ChunkData forward, ChunkData backward)
         {
@@ -208,15 +209,17 @@ namespace Client
                 neighborId = ChunkData.GetId(x, h, y);
             }
 
-            return !Equals(blockId, neighborId);
+            return neighborId.Equals( BlockId.AIR) ;
         }
-
-        public void GenObjectsViewAsync(object state)
+        
+        private void GenObjectsViewAsync(object state)
         {
             try
             {
+                Stopwatch t = Stopwatch.StartNew();
                 view = GenObjectsView();
-                // Debug.Log("Processing finished " + ChunkData.chunkPosition);
+                t.Stop();
+                Debug.Log("Mesh generated in " + t.ElapsedMilliseconds);
             }
             catch (Exception e)
             {
@@ -233,69 +236,90 @@ namespace Client
 
             return constructors[blockId];
         }
+        
+        public static Constructor FindConstructor(List<Constructor> constructors, BlockId blockId)
+        {
+            foreach (Constructor constructor in constructors)
+            {
+                if (constructor.blockId.Equals(blockId))
+                {
+                    return constructor;
+                }
+            }
+            Constructor cstr = new Constructor {blockId = blockId};
+            constructors.Add(cstr);
+            return cstr;
+        }
 
         private View GenObjectsView()
         {
-            Dictionary<BlockId, Constructor> constructors = new Dictionary<BlockId, Constructor>();
+            //Dictionary<BlockId, Constructor> constructors = new Dictionary<BlockId, Constructor>(3);
+            Stopwatch timer = Stopwatch.StartNew();
+            List<Constructor> constructors = new List<Constructor>();
 
             for (int hi = 0; hi < terrainGenerator.WorldHeight - 1; ++hi)
             {
-                for (int yi = 0; yi < GameSettings.CHUNK_SIZE; ++yi)
+                ChunkSlice slice = ChunkData.GetSlice(hi);
+                if (slice != null)
                 {
-                    for (int xi = 0; xi < GameSettings.CHUNK_SIZE; ++xi)
+
+                    for (int yi = 0; yi < GameSettings.CHUNK_SIZE; ++yi)
                     {
-                        BlockId blockId = ChunkData.GetId(xi, hi, yi);
-                        if (Equals(blockId, BlockId.AIR))
+                        for (int xi = 0; xi < GameSettings.CHUNK_SIZE; ++xi)
                         {
-                            continue;
-                        }
+                            BlockId blockId = slice.GetId(xi, yi);
+                            if (Equals(blockId, BlockId.AIR))
+                            {
+                                continue;
+                            }
 
-                        BlockSpecification spec = terrainGenerator.GetBlockData(blockId);
+                            // BlockSpecification spec = terrainGenerator.GetBlockData(blockId);
 
-                        // Zpos
-                        if (TestSide(blockId, xi, hi + 1, yi))
-                        {
-                            // uint destroyAnim = FindDestroyAnim(chunk, id, xi, hi, yi);
-                            ChunkMesh.AddSide_ZP(FindConstructor(constructors, blockId), xi, hi, yi);
-                        }
+                            // Zpos
+                            if (TestSide(blockId, xi, hi + 1, yi))
+                            {
+                                // uint destroyAnim = FindDestroyAnim(chunk, id, xi, hi, yi);
+                                ChunkMesh.AddSide_ZP(FindConstructor(constructors, blockId), xi, hi, yi);
+                            }
 
-                        //
-                        // // Zneg
-                        if (TestSide(blockId, xi, hi - 1, yi))
-                        {
-                            // uint destroyAnim = FindDestroyAnim(chunk, id, xi, hi, yi);
-                            ChunkMesh.AddSide_ZN(FindConstructor(constructors, blockId), xi, hi, yi);
-                        }
+                            //
+                            // // Zneg
+                            if (TestSide(blockId, xi, hi - 1, yi))
+                            {
+                                // uint destroyAnim = FindDestroyAnim(chunk, id, xi, hi, yi);
+                                ChunkMesh.AddSide_ZN(FindConstructor(constructors, blockId), xi, hi, yi);
+                            }
 
-                        // // Xpoz
-                        if (TestSide(blockId, xi + 1, hi, yi))
-                        {
-                            // uint destroyAnim = FindDestroyAnim(chunk, id, xi, hi, yi);
-                            ChunkMesh.AddSide_XP(FindConstructor(constructors, blockId), xi, hi, yi);
-                        }
+                            // // Xpoz
+                            if (TestSide(blockId, xi + 1, hi, yi))
+                            {
+                                // uint destroyAnim = FindDestroyAnim(chunk, id, xi, hi, yi);
+                                ChunkMesh.AddSide_XP(FindConstructor(constructors, blockId), xi, hi, yi);
+                            }
 
-                        // // Xneg
-                        if (TestSide(blockId, xi - 1, hi, yi))
-                        {
-                            // uint destroyAnim = FindDestroyAnim(chunk, id, xi, hi, yi);
-                            ChunkMesh.AddSide_XN(FindConstructor(constructors, blockId), xi, hi, yi);
-                        }
+                            // // Xneg
+                            if (TestSide(blockId, xi - 1, hi, yi))
+                            {
+                                // uint destroyAnim = FindDestroyAnim(chunk, id, xi, hi, yi);
+                                ChunkMesh.AddSide_XN(FindConstructor(constructors, blockId), xi, hi, yi);
+                            }
 
-                        // // Ypoz
+                            // // Ypoz
 
-                        if (TestSide(blockId, xi, hi, yi + 1))
-                        {
-                            // uint destroyAnim = FindDestroyAnim(chunk, id, xi, hi, yi);
-                            ChunkMesh.AddSide_YP(FindConstructor(constructors, blockId), xi, hi, yi);
-                        }
+                            if (TestSide(blockId, xi, hi, yi + 1))
+                            {
+                                // uint destroyAnim = FindDestroyAnim(chunk, id, xi, hi, yi);
+                                ChunkMesh.AddSide_YP(FindConstructor(constructors, blockId), xi, hi, yi);
+                            }
 
 
-                        // // Ypoz
+                            // // Ypoz
 
-                        if (TestSide(blockId, xi, hi, yi - 1))
-                        {
-                            // uint destroyAnim = FindDestroyAnim(chunk, id, xi, hi, yi);
-                            ChunkMesh.AddSide_YN(FindConstructor(constructors, blockId), xi, hi, yi);
+                            if (TestSide(blockId, xi, hi, yi - 1))
+                            {
+                                // uint destroyAnim = FindDestroyAnim(chunk, id, xi, hi, yi);
+                                ChunkMesh.AddSide_YN(FindConstructor(constructors, blockId), xi, hi, yi);
+                            }
                         }
                     }
                 }
@@ -305,21 +329,22 @@ namespace Client
             {
                 // objects = GenObjects(chunk)
             };
-            foreach (KeyValuePair<BlockId, Constructor> pair in constructors)
+            foreach ( Constructor pair in constructors)
             {
-                if (pair.Value.vertices.Count == 0)
+                if (pair.vertices.Count == 0)
                     continue;
                 MeshBuilder mesh = new MeshBuilder
                 {
-                    blockId = pair.Key,
-                    vertices = pair.Value.vertices.ToArray(),
-                    normals = pair.Value.normals.ToArray(),
-                    uv = pair.Value.uv.ToArray(),
-                    triangles = pair.Value.triangles.ToArray()
+                    blockId = pair.blockId,
+                    vertices = pair.vertices.ToArray(),
+                    normals = pair.normals.ToArray(),
+                    uv = pair.uv.ToArray(),
+                    triangles = pair.triangles.ToArray()
                 };
                 chunk_view.mesh.Add(mesh);
             }
-
+            timer.Stop();
+            Debug.Log("Mesh generation finished in " + timer.ElapsedMilliseconds);
             return chunk_view;
         }
 

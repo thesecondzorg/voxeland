@@ -9,8 +9,8 @@ namespace Test.Map
     public class ChunkSlice : MessageBase
     {
         public ushort[] blocks;
-        public int size;
-        public uint singleBlock = BlockId.AIR.Id;
+        public readonly int size;
+        public BlockId singleBlock = BlockId.AIR;
         public bool isSingleBlock = true;
 
         public ChunkSlice()
@@ -20,42 +20,20 @@ namespace Test.Map
         public ChunkSlice(int chunkSize)
         {
             size = chunkSize;
-
-            // bits = new Dictionary<BlockId, BitArray>();
-            // bits[BlockId.AIR] = new BitArray(size * size);
         }
-
-        // public ChunkSlice(BlockId[,] blocks)
-        // {
-        //     this.bits = new Dictionary<BlockId, BitArray>();
-        //     size = blocks.GetLength(0);
-        //     for (int x = 0; x < size; x++)
-        //     {
-        //         for (int y = 0; y < blocks.GetLength(1); y++)
-        //         {
-        //             BlockId blockId = blocks[x, y];
-        //             if (!bits.ContainsKey(blockId))
-        //             {
-        //                 bits[blockId] = new BitArray(size * size);
-        //             }
-        //
-        //             bits[blockId].Set(y * size + x, true);
-        //         }
-        //     }
-        // }
-
+        
         public BlockId GetId(int posX, int posY)
         {
             if (isSingleBlock)
             {
-                return new BlockId {Id = singleBlock};
+                return singleBlock;
             }
 
             int shift = posY * size + posX;
             try
             {
                 ushort id = blocks[shift];
-                return new BlockId {Id = (uint) id};
+                return BlockId.of(id);
             }
             catch (Exception e)
             {
@@ -66,7 +44,7 @@ namespace Test.Map
 
         public BlockId Set(int x, int y, BlockId blockId)
         {
-            if (isSingleBlock && blockId.Id == singleBlock)
+            if (isSingleBlock && blockId.Equals(singleBlock))
             {
                 return blockId;
             }
@@ -80,7 +58,7 @@ namespace Test.Map
             int shift = y * size + x;
             ushort oldBlock = blocks[shift];
             blocks[shift] = (ushort) blockId.Id;
-            return new BlockId {Id = (uint) oldBlock};
+            return BlockId.of(oldBlock);
         }
 
         public override void Deserialize(NetworkReader reader)
@@ -88,7 +66,7 @@ namespace Test.Map
             isSingleBlock = reader.ReadBoolean();
             if (isSingleBlock)
             {
-                singleBlock = reader.ReadUInt16();
+                singleBlock = BlockId.of(reader.ReadUInt16());
             }
             else
             {
@@ -110,30 +88,36 @@ namespace Test.Map
 
         public override void Serialize(NetworkWriter writer)
         {
-            if (isSingleBlock)
+            try
             {
-                writer.WriteBoolean(true);
-                writer.WriteUInt32(singleBlock);
-            }
-            else
-            {
-                writer.WriteBoolean(false);
-                writer.WriteInt32(blocks.Length);
-                // ushort[] buffer = new ushort[blocks.Length];
-                ushort counter = 0;
-                ushort currentBlock = blocks[0];
-                for (var i = 0; i < blocks.Length; i++)
+                writer.WriteBoolean(isSingleBlock);
+                if (isSingleBlock)
                 {
-                    if (blocks[i] != currentBlock)
-                    {
-                        writer.WriteUInt16(counter);
-                        writer.WriteUInt16(currentBlock);
-                        counter = 0;
-                        currentBlock = blocks[i];
-                    }
-
-                    counter++;
+                    writer.WriteUInt16((ushort) singleBlock.Id);
                 }
+                else
+                {
+                    writer.WriteInt32(blocks.Length);
+                    // ushort[] buffer = new ushort[blocks.Length];
+                    ushort counter = 0;
+                    ushort currentBlock = blocks[0];
+                    for (var i = 0; i < blocks.Length; i++)
+                    {
+                        if (blocks[i] != currentBlock)
+                        {
+                            writer.WriteUInt16(counter);
+                            writer.WriteUInt16(currentBlock);
+                            counter = 0;
+                            currentBlock = blocks[i];
+                        }
+
+                        counter++;
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
             }
         }
     }

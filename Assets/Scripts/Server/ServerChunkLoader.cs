@@ -92,7 +92,7 @@ namespace Server
                 }
                 catch (Exception e)
                 {
-                    throw e;
+                    Debug.LogException(e);
                 }
             }
             else
@@ -131,7 +131,13 @@ namespace Server
                     {
                         lock (this)
                         {
-                            conn.Send(message);
+                            try {
+                                conn.Send(message);
+                            }
+                            catch (Exception e)
+                            {
+                                Debug.LogException(e);
+                            }
                         }
                     }
                 }

@@ -27,7 +27,11 @@ namespace Map
             }
             return slices[y].GetId(x, z);
         }
-        
+
+        public ChunkSlice GetSlice(int y)
+        {
+            return slices[y];
+        }
         public int GetHeight(int x, int y)
         {
             for (int i = Height - 1; i > 0; i--)

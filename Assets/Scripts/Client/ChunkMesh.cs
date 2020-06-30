@@ -94,7 +94,7 @@ public class ChunkMesh
 
         con.normals.AddRange(s_normal_xp);
         con.uv.AddRange(s_uv_xp);
-
+        
         con.triangles.Add(n + 3);
         con.triangles.Add(n + 2);
         con.triangles.Add(n + 1);
@@ -115,7 +115,7 @@ public class ChunkMesh
 
         con.normals.AddRange(s_normal_xn);
         con.uv.AddRange(s_uv_xp);
-
+        
         con.triangles.Add(n + 0);
         con.triangles.Add(n + 1);
         con.triangles.Add(n + 2);
@@ -136,7 +136,7 @@ public class ChunkMesh
 
         con.normals.AddRange(s_normal_yp);
         con.uv.AddRange(s_uv_yp);
-
+        
         con.triangles.Add(n + 3);
         con.triangles.Add(n + 2);
         con.triangles.Add(n + 1);
@@ -157,7 +157,7 @@ public class ChunkMesh
 
         con.normals.AddRange(s_normal_yn);
         con.uv.AddRange(s_uv_xp);
-
+        
         con.triangles.Add(n + 0);
         con.triangles.Add(n + 1);
         con.triangles.Add(n + 2);
@@ -177,8 +177,8 @@ public class ChunkMesh
         con.vertices.Add(new Vector3(x - inBlockShift, y + inBlockShift, z + inBlockShift));
 
         con.normals.AddRange(s_normal_zp);
+        
         con.uv.AddRange(s_uv_zp);
-
         con.triangles.Add(n + 3);
         con.triangles.Add(n + 2);
         con.triangles.Add(n + 1);
@@ -199,7 +199,7 @@ public class ChunkMesh
 
         con.normals.AddRange(s_normal_zn);
         con.uv.AddRange(s_uv_xp);
-
+        
         con.triangles.Add(n + 0);
         con.triangles.Add(n + 1);
         con.triangles.Add(n + 2);

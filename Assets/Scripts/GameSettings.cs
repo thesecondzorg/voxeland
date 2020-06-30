@@ -5,6 +5,7 @@ namespace Test
     public class GameSettings
     {
         public static int CHUNK_SIZE = 16;
+        public static int CHUNK_SIZE_N = CHUNK_SIZE - 1;
         public static int WORLD_HEIGHT = 256;
 
         public static Vector2Int ToChunkPos(Vector3 pos)

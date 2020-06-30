@@ -1,4 +1,8 @@
-﻿using UnityEngine;
+﻿using System;
+using System.Diagnostics;
+using System.Timers;
+using UnityEngine;
+using Debug = UnityEngine.Debug;
 
 namespace Client
 {
@@ -11,8 +15,9 @@ namespace Client
 
         public ChunkViewRenderer.MeshBuilder meshBuilder;
 
-        public bool Notify = false; 
+        public bool Notify = false;
 
+        public bool ready = false;
         // Start is called before the first frame update
         void Start()
         {
@@ -24,10 +29,16 @@ namespace Client
         // Update is called once per frame
         void Update()
         {
+            if (ready)
+            {
+                Notify = true;
+                ready = false;
+            }
         }
 
         public void Reload()
         {
+            Stopwatch timer = Stopwatch.StartNew();
             Mesh mesh = new Mesh
             {
                 vertices = meshBuilder.vertices,
@@ -47,7 +58,9 @@ namespace Client
             
             collider = gameObject.AddComponent<MeshCollider>();
             // collider.sharedMesh = mesh;
-            Notify = true;
+            ready = true;
+            timer.Stop();
+            Debug.Log("Render chunk took " + timer.ElapsedMilliseconds);
         }
     }
 }

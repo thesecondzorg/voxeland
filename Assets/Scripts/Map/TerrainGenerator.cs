@@ -23,26 +23,13 @@ namespace Map
         [SerializeField] public int Seed;
 
         [SerializeField] public int WorldHeight = 256;
-        [SerializeField] public Material TerrainMaterial;
-        public Texture2DArray texture2DArray;
+        
         float3 caveRate = new float3(1, 2, 1);
         private OpenSimplex2S noiseGen; 
         public void InitAwake()
         {
             Seed = Random.Range(10, 10000);
             noiseGen = new OpenSimplex2S(Seed);
-            texture2DArray = new Texture2DArray(128, 128, Blocks.Count, TextureFormat.RGB24, false);
-            for (int i = 0; i < Blocks.Count; i++)
-            {
-                Blocks[i].blockId = (uint) (i);
-                if (Blocks[i].ViewType == ViewType.Block)
-                {
-                    texture2DArray.SetPixels(Blocks[i].Texture.GetPixels(0), i);
-                }
-            }
-
-            texture2DArray.Apply();
-            TerrainMaterial.SetTexture("_TextureArray", texture2DArray);
         }
 
         public ChunkData GenerateNewChunk(Vector2Int chunkPosition)
@@ -62,6 +49,7 @@ namespace Map
                     float heightVariation = biomeSpecification.MaxHeight - biomeSpecification.MinHeight;
                     float ty = (chunkPosition.y * GameSettings.CHUNK_SIZE  + y)  ;
                     double height = Map.Perlin.Fbm(tx / 50, ty / 50, 5) *heightVariation+ biomeSpecification.MinHeight;
+                    
                     for (int h = 0; h < height; h++)
                     {
                         BlockId blockId = Get(
@@ -128,11 +116,11 @@ namespace Map
                 {
                     if (height - blockGlobalPosition.y < 5)
                     {
-                        return new BlockId {Id = biomeSpecification.topBlock.blockId};
+                        return BlockId.of(biomeSpecification.topBlock.blockId);
                     }
                     else
                     {
-                        return new BlockId {Id = 2};
+                        return BlockId.of(2);
                     }
                 }
             }

@@ -26,7 +26,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 780405561640073317}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 1, z: 0}
+  m_LocalPosition: {x: 0, y: 0.522, z: 0}
   m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
   m_Children: []
   m_Father: {fileID: 5554087958771397885}
@@ -270,7 +270,7 @@ MonoBehaviour:
   playerCamera: {fileID: 0}
   playerHead: {fileID: 6908194595728921477}
   lookSpeed: 2
-  lookXLimit: 45
+  lookXLimit: 85
   characterController: {fileID: -2907483371197540477}
   canMove: 1
 --- !u!114 &8693322153216881400

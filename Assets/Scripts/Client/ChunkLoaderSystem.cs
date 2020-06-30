@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Timers;
 using Map;
 using Mirror;
 using Server;
@@ -17,11 +18,7 @@ namespace Client
         private int playerVisibility = 10;
         [SerializeField] private WorldRenderSystem renderSystem;
 
-        // private WorldHolder worldHolder;
         public ChunksHolder worldHolder = new ChunksHolder();
-
-        // private Dictionary<uint, PlayerConnectionInfo> playerInfos = new Dictionary<uint, PlayerConnectionInfo>();
-        [SerializeField] private PlayerInputSystem playerInput;
 
         private Nullable<Vector2Int> oldChunkPos;
         private Vector3 playerPos;
@@ -59,6 +56,7 @@ namespace Client
 
         private void OnBlockUpdateRequest(BlockUpdateRequest obj)
         {
+            Debug.Log("Update block");
             lock (worldHolder)
             {
                 if (!worldHolder.TryGet(obj.chunkPosition, out Chunk chunk)) return;
@@ -66,21 +64,51 @@ namespace Client
                 chunk.chunk.slices[inChunkPosition.y].Set(inChunkPosition.x, inChunkPosition.z, obj.blockId);
                 chunk.Reload(true);
                 renderSystem.ReceiveChunk(chunk.chunk);
-                renderSystem.ReloadChunk(obj.chunkPosition + Vector2Int.left);
-                renderSystem.ReloadChunk(obj.chunkPosition + Vector2Int.right);
-                renderSystem.ReloadChunk(obj.chunkPosition + Vector2Int.down);
-                renderSystem.ReloadChunk(obj.chunkPosition + Vector2Int.up);
+                TestSide(obj.inChunkPosition, obj.chunkPosition);
+                // {
+                // renderSystem.ReloadChunk(obj.chunkPosition + Vector2Int.left);
+                // renderSystem.ReloadChunk(obj.chunkPosition + Vector2Int.right);
+                // renderSystem.ReloadChunk(obj.chunkPosition + Vector2Int.down);
+                // renderSystem.ReloadChunk(obj.chunkPosition + Vector2Int.up);
+                // }
             }
+        }
+
+        private void TestSide(Vector3Int inChunkPosition, Vector2Int chunkPosition)
+        {
+            if (inChunkPosition.x == GameSettings.CHUNK_SIZE_N)
+            {
+                renderSystem.ReloadChunk(chunkPosition +  Vector2Int.right);
+            }
+
+            if (inChunkPosition.x == 0)
+            {
+                renderSystem.ReloadChunk(chunkPosition +  Vector2Int.left);
+            }
+
+            if (inChunkPosition.z == GameSettings.CHUNK_SIZE_N)
+            {
+                renderSystem.ReloadChunk(chunkPosition + Vector2Int.up);
+            }
+
+            if (inChunkPosition.z == 0)
+            {
+                renderSystem.ReloadChunk(chunkPosition + Vector2Int.down);
+            }
+        }
+
+        private bool TestOnEdge(int x, int y)
+        {
+            return x >= GameSettings.CHUNK_SIZE || x < 0 || y >= GameSettings.CHUNK_SIZE || y < 0;
         }
 
         private void Update()
         {
-            
             playerPos = transform.position;
             Vector2Int newChunkPos = new Vector2Int(
                 (int) (playerPos.x / GameSettings.CHUNK_SIZE),
                 (int) (playerPos.z / GameSettings.CHUNK_SIZE));
-            if (!oldChunkPos.HasValue || Vector2Int.Distance(newChunkPos , oldChunkPos.Value) > 2)
+            if (!oldChunkPos.HasValue || Vector2Int.Distance(newChunkPos, oldChunkPos.Value) > 2)
             {
                 lock (worldHolder)
                 {
@@ -232,9 +260,12 @@ namespace Client
                     return;
                 }
 
+                loadedChunk.chunkFullyLoad = DateTime.Now;
+
                 if (loadedChunk.renderState == ChunkRenderState.None)
                 {
                     loadedChunk.renderState = ChunkRenderState.Started;
+                    loadedChunk.putInQueue = DateTime.Now;
                     renderSystem.ReceiveChunk(loadedChunk.chunk);
                 }
 
@@ -287,6 +318,11 @@ namespace Client
         public ChunkData chunk;
         public ChunkViewRenderer view;
         private ChunkData tmpBatches;
+        public DateTime startChunkLoad = DateTime.Now;
+        public DateTime chunkFullyLoad;
+        public DateTime putInQueue;
+        public DateTime meshGenStart;
+        public DateTime meshGenEnd;
 
         public ChunkRenderState renderState = ChunkRenderState.None;
         public bool isLoaded = false;

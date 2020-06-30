@@ -16,11 +16,10 @@ namespace Client
         private Queue<Vector2Int> chunkToRender = new Queue<Vector2Int>();
         public ChunksHolder worldHolder;
         public Action<Vector2Int, ChunkViewRenderer> ChunkReadyCallBack;
-
-        private void Awake()
-        {
-        }
-
+        public Texture2DArray texture2DArray;
+        
+        
+        
         public void ReceiveChunk(ChunkData chunk)
         {
             chunkToRender.Enqueue(chunk.chunkPosition);
@@ -63,11 +62,6 @@ namespace Client
                 if (chunk.view == null)
                 {
                     GameObject go = Instantiate(ChunkPrefab);
-                    // go.transform.SetParent(transform);
-                    // go.transform.position = new Vector3(
-                    //     chunkPosition.x * GameSettings.CHUNK_SIZE,
-                    //     0,
-                    //     chunkPosition.y * GameSettings.CHUNK_SIZE);
                     chunk.view = go.GetComponent<ChunkViewRenderer>();
                     chunk.view.ChunkReadyCallBack = ChunkReadyCallBack;
                 }
