@@ -16,6 +16,7 @@ namespace Mirror
     /// </remarks>
     public abstract class NetworkConnection : IDisposable
     {
+        public const int LocalConnectionId = 0;
         static readonly ILogger logger = LogFactory.GetLogger<NetworkConnection>();
 
         // internal so it can be tested
@@ -91,13 +92,17 @@ namespace Mirror
         /// <summary>
         /// Creates a new NetworkConnection
         /// </summary>
-        internal NetworkConnection() { }
+        internal NetworkConnection()
+        {
+            // set lastTime to current time when creating connection to make sure it isn't instantly kicked for inactivity 
+            lastMessageTime = Time.time;
+        }
 
         /// <summary>
         /// Creates a new NetworkConnection with the specified connectionId
         /// </summary>
         /// <param name="networkConnectionId"></param>
-        internal NetworkConnection(int networkConnectionId)
+        internal NetworkConnection(int networkConnectionId) : this()
         {
             connectionId = networkConnectionId;
         }
@@ -230,7 +235,7 @@ namespace Mirror
         /// </summary>
         /// <typeparam name="T">The message type to unregister.</typeparam>
         /// <param name="msg">The message object to process.</param>
-        /// <returns></returns>
+        /// <returns>Returns true if the handler was successfully invoked</returns>
         public bool InvokeHandler<T>(T msg, int channelId) where T : IMessageBase
         {
             // get writer from pool

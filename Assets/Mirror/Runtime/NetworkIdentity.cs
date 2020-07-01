@@ -2,8 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Security.Cryptography;
+using Mirror.RemoteCalls;
 using UnityEngine;
 using UnityEngine.Serialization;
+
+
 #if UNITY_EDITOR
 using UnityEditor;
 #if UNITY_2018_3_OR_NEWER
@@ -209,12 +212,30 @@ namespace Mirror
             }
             internal set
             {
-                string newAssetIdString = value.ToString("N");
-                if (string.IsNullOrEmpty(m_AssetId) || m_AssetId == newAssetIdString)
+                string newAssetIdString = value == Guid.Empty ? string.Empty : value.ToString("N");
+                string oldAssetIdSrting = m_AssetId;
+
+                if (oldAssetIdSrting != newAssetIdString)
                 {
+                    // new is empty
+                    if (string.IsNullOrEmpty(newAssetIdString))
+                    {
+                        logger.LogError($"Can not set AssetId to empty guid on NetworkIdentity '{name}', old assetId '{oldAssetIdSrting}'");
+                        return;
+                    }
+
+                    // old not empty
+                    if (!string.IsNullOrEmpty(oldAssetIdSrting))
+                    {
+                        logger.LogError($"Can not Set AssetId on NetworkIdentity '{name}' becasue it already had an assetId, current assetId '{oldAssetIdSrting}', attempted new assetId '{newAssetIdString}'");
+                        return;
+                    }
+
+                    // old is empty
                     m_AssetId = newAssetIdString;
+
+                    if (logger.LogEnabled()) logger.Log($"Settings AssetId on NetworkIdentity '{name}', new assetId '{newAssetIdString}'");
                 }
-                else logger.LogWarning($"SetDynamicAssetId object {name} already has an assetId {m_AssetId}, new asset id {newAssetIdString}");
             }
         }
 
@@ -877,7 +898,7 @@ namespace Mirror
 
             return dirtyComponentsMask;
         }
-        internal ulong GetIntialComponentsMask()
+        internal ulong GetInitialComponentsMask()
         {
             // loop through all components only once and then write dirty+payload into the writer afterwards
             ulong dirtyComponentsMask = 0UL;
@@ -925,7 +946,12 @@ namespace Mirror
             catch (Exception e)
             {
                 // show a detailed error and let the user know what went wrong
-                logger.LogError("OnDeserialize failed for: object=" + name + " component=" + comp.GetType() + " sceneId=" + sceneId.ToString("X") + " length=" + contentSize + ". Possible Reasons:\n  * Do " + comp.GetType() + "'s OnSerialize and OnDeserialize calls write the same amount of data(" + contentSize + " bytes)? \n  * Was there an exception in " + comp.GetType() + "'s OnSerialize/OnDeserialize code?\n  * Are the server and client the exact same project?\n  * Maybe this OnDeserialize call was meant for another GameObject? The sceneIds can easily get out of sync if the Hierarchy was modified only in the client OR the server. Try rebuilding both.\n\n" + e);
+                logger.LogError($"OnDeserialize failed for: object={name} component={comp.GetType()} sceneId={sceneId.ToString("X")} length={contentSize}. Possible Reasons:\n" +
+                    $"  * Do {comp.GetType()}'s OnSerialize and OnDeserialize calls write the same amount of data({contentSize} bytes)? \n" +
+                    $"  * Was there an exception in {comp.GetType()}'s OnSerialize/OnDeserialize code?\n" +
+                    $"  * Are the server and client the exact same project?\n" +
+                    $"  * Maybe this OnDeserialize call was meant for another GameObject? The sceneIds can easily get out of sync if the Hierarchy was modified only in the client OR the server. Try rebuilding both.\n\n" +
+                    $"Exeption {e}");
             }
 
             // now the reader should be EXACTLY at 'before + size'.
@@ -960,9 +986,10 @@ namespace Mirror
         }
 
         // helper function to handle SyncEvent/Command/Rpc
-        void HandleRemoteCall(int componentIndex, int functionHash, MirrorInvokeType invokeType, NetworkReader reader)
+        void HandleRemoteCall(int componentIndex, int functionHash, MirrorInvokeType invokeType, NetworkReader reader, NetworkConnectionToClient senderConnection = null)
         {
-            if (gameObject == null)
+            // check if unity object has been destroyed
+            if (this == null)
             {
                 logger.LogWarning(invokeType + " [" + functionHash + "] received for deleted object [netId=" + netId + "]");
                 return;
@@ -972,7 +999,7 @@ namespace Mirror
             if (0 <= componentIndex && componentIndex < NetworkBehaviours.Length)
             {
                 NetworkBehaviour invokeComponent = NetworkBehaviours[componentIndex];
-                if (!invokeComponent.InvokeHandlerDelegate(functionHash, invokeType, reader))
+                if (!RemoteCallHelper.InvokeHandlerDelegate(functionHash, invokeType, reader, invokeComponent, senderConnection))
                 {
                     logger.LogError("Found no receiver for incoming " + invokeType + " [" + functionHash + "] on " + gameObject + ",  the server and client should have the same NetworkBehaviour instances [netId=" + netId + "].");
                 }
@@ -990,9 +1017,32 @@ namespace Mirror
         }
 
         // happens on server
-        internal void HandleCommand(int componentIndex, int cmdHash, NetworkReader reader)
+        internal void HandleCommand(int componentIndex, int cmdHash, NetworkReader reader, NetworkConnectionToClient senderConnection)
         {
-            HandleRemoteCall(componentIndex, cmdHash, MirrorInvokeType.Command, reader);
+            HandleRemoteCall(componentIndex, cmdHash, MirrorInvokeType.Command, reader, senderConnection);
+        }
+
+        // happens on server
+        internal CommandInfo GetCommandInfo(int componentIndex, int cmdHash)
+        {
+            // check if unity object has been destroyed
+            if (this == null)
+            {
+                // error can be logged later
+                return default;
+            }
+
+            // find the right component to invoke the function on
+            if (0 <= componentIndex && componentIndex < NetworkBehaviours.Length)
+            {
+                NetworkBehaviour invokeComponent = NetworkBehaviours[componentIndex];
+                return RemoteCallHelper.GetCommandInfo(cmdHash, invokeComponent);
+            }
+            else
+            {
+                // error can be logged later
+                return default;
+            }
         }
 
         // happens on client

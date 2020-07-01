@@ -1,7 +1,7 @@
-using UnityEngine;
-using UnityEngine.SceneManagement;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace Mirror.Examples.MultipleAdditiveScenes
 {
@@ -78,7 +78,8 @@ namespace Mirror.Examples.MultipleAdditiveScenes
 
         public override void OnStopClient()
         {
-            StartCoroutine(UnloadClientSubScenes());
+            if (mode == NetworkManagerMode.ClientOnly)
+                StartCoroutine(UnloadClientSubScenes());
         }
 
         IEnumerator UnloadClientSubScenes()
