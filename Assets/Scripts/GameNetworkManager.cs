@@ -13,7 +13,6 @@ public class RequestChunkMessage : MessageBase
 public class GameNetworkManager : NetworkManager
 {
     [SerializeField]private TerrainGenerator terrainGenerator;
-    [SerializeField] public Material TerrainMaterial;
 
     private ServerChunkLoader map;
     public override void OnServerAddPlayer(NetworkConnection conn)
@@ -28,31 +27,19 @@ public class GameNetworkManager : NetworkManager
     public override void Awake()
     {
         base.Awake();
-        terrainGenerator.InitAwake();
     }
 
     public override void OnStartClient()
     {
         base.OnStartClient();
    
-        BlockSpecification[] blocks = Resources.LoadAll<BlockSpecification>("Blocks");
-        Texture2DArray texture2DArray = new Texture2DArray(128, 128, blocks.Length, TextureFormat.RGB24, true);
-        for (int i = 0; i < blocks.Length; i++)
-        {
-            blocks[i].blockId = (uint) (i);
-            if (blocks[i].ViewType == ViewType.Block)
-            {
-                texture2DArray.SetPixels(blocks[i].Texture.GetPixels(0), i);
-            }
-            BlockId.Blocks[i] = new BlockId(i);
-        }
+        terrainGenerator.InitAwake(true);
 
-        texture2DArray.Apply();
-        TerrainMaterial.SetTexture("_TextureArray", texture2DArray);
     }
     public override void OnStartServer()
     {
         base.OnStartServer();
+        terrainGenerator.InitAwake(false);
         map = new ServerChunkLoader(terrainGenerator);
         map.Start();
     }

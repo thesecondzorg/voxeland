@@ -1,9 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Client;
 using Map;
-using Server;
-using Test.Map;
 using UnityEngine;
 
 namespace Test
@@ -11,8 +8,6 @@ namespace Test
     public class LoadedChunk
     {
         public readonly List<int> registeredClients = new List<int>();
-
-     
         public bool IsLoaded => ChunkData != null;
         public bool IsEmpty => registeredClients.Count == 0;
 
@@ -32,12 +27,9 @@ namespace Test
         {
             return registeredClients.Remove(netIdentityNetId);
         }
-
-       
     }
     
-    [CreateAssetMenu(fileName = "WorldHolder", menuName = "GameAssets/WorldHolder")]
-    public class WorldHolder : ScriptableObject
+    public class WorldHolder 
     {
         private Dictionary<Vector2Int, LoadedChunk>
             loadedChunks = new Dictionary<Vector2Int, LoadedChunk>();

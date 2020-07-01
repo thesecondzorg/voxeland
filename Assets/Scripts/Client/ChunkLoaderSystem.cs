@@ -110,12 +110,19 @@ namespace Client
                 (int) (playerPos.z / GameSettings.CHUNK_SIZE));
             if (!oldChunkPos.HasValue || Vector2Int.Distance(newChunkPos, oldChunkPos.Value) > 2)
             {
-                lock (worldHolder)
+                if (connectionToServer.isReady)
                 {
-                    RequestChunks(newChunkPos);
-                }
+                    lock (worldHolder)
+                    {
+                        RequestChunks(newChunkPos);
+                    }
 
-                oldChunkPos = newChunkPos;
+                    oldChunkPos = newChunkPos;
+                }
+                else
+                {
+                    Debug.Log("Connection is not ready");
+                }
             }
 
             if (playerPosToSet.HasValue)
@@ -136,7 +143,10 @@ namespace Client
                 }
 
                 worldHolder.Delete(pos);
-                NetworkClient.Send(new UnsubscribeChunk {pos = pos});
+                lock(this)
+                {
+                    connectionToServer.Send(new UnsubscribeChunk {pos = pos});
+                }
             }
         }
 
@@ -204,10 +214,20 @@ namespace Client
 
         private void CmdLoadChunk(Vector2Int chunkPosition)
         {
-            connectionToServer.Send(new RequestChunkMessage
+            try
             {
-                pos = chunkPosition
-            });
+                lock (this)
+                {
+                    connectionToServer.Send(new RequestChunkMessage
+                    {
+                        pos = chunkPosition
+                    });
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogError(e);
+            }
         }
 
         private void OnReceiveChunk(NetworkConnection conn, ChunkPartMessage part)
@@ -223,26 +243,26 @@ namespace Client
                 if (loadedChunk.renderState == ChunkRenderState.Done)
                 {
                     loadedChunk.Reload();
-                    Chunk chunk;
-                    if (worldHolder.TryGet(loadedChunk.chunk.chunkPosition + Vector2Int.left, out chunk))
-                    {
-                        renderSystem.ReceiveChunk(chunk.chunk);
-                    }
-
-                    if (worldHolder.TryGet(loadedChunk.chunk.chunkPosition + Vector2Int.right, out chunk))
-                    {
-                        renderSystem.ReceiveChunk(chunk.chunk);
-                    }
-
-                    if (worldHolder.TryGet(loadedChunk.chunk.chunkPosition + Vector2Int.up, out chunk))
-                    {
-                        renderSystem.ReceiveChunk(chunk.chunk);
-                    }
-
-                    if (worldHolder.TryGet(loadedChunk.chunk.chunkPosition + Vector2Int.down, out chunk))
-                    {
-                        renderSystem.ReceiveChunk(chunk.chunk);
-                    }
+                    // Chunk chunk;
+                    // if (worldHolder.TryGet(loadedChunk.chunk.chunkPosition + Vector2Int.left, out chunk))
+                    // {
+                    //     renderSystem.ReceiveChunk(chunk.chunk);
+                    // }
+                    //
+                    // if (worldHolder.TryGet(loadedChunk.chunk.chunkPosition + Vector2Int.right, out chunk))
+                    // {
+                    //     renderSystem.ReceiveChunk(chunk.chunk);
+                    // }
+                    //
+                    // if (worldHolder.TryGet(loadedChunk.chunk.chunkPosition + Vector2Int.up, out chunk))
+                    // {
+                    //     renderSystem.ReceiveChunk(chunk.chunk);
+                    // }
+                    //
+                    // if (worldHolder.TryGet(loadedChunk.chunk.chunkPosition + Vector2Int.down, out chunk))
+                    // {
+                    //     renderSystem.ReceiveChunk(chunk.chunk);
+                    // }
                 }
 
                 try

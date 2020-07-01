@@ -51,11 +51,11 @@ namespace Server
             {
                 chunk.ChunkData.slices[msg.inChunkPosition.y]
                     .Set(msg.inChunkPosition.x, msg.inChunkPosition.z, msg.blockId);
-                // FIXME we should send update request only
                 lock (this)
                 {
                     NetworkServer.SendToAll(msg);
                 }
+
                 //OnReceiveGeneratedChunk(chunk.ChunkData);
             }
         }
@@ -124,19 +124,20 @@ namespace Server
         {
             BatchProcess(chunk.ChunkData, message =>
             {
-                for (var i = 0; i < chunk.registeredClients.Count; i++)
+                for (int i = 0; i < chunk.registeredClients.Count; i++)
                 {
                     if (NetworkServer.connections.TryGetValue(chunk.registeredClients[i],
                         out NetworkConnectionToClient conn))
                     {
                         lock (this)
                         {
-                            try {
+                            try
+                            {
                                 conn.Send(message);
                             }
                             catch (Exception e)
                             {
-                                Debug.LogException(e);
+                                Debug.LogError(e);
                             }
                         }
                     }

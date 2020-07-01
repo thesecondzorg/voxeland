@@ -17,19 +17,46 @@ namespace Map
     [CreateAssetMenu(fileName = "TerrainGenerator", menuName = "GameAssets/TerrainGenerator", order = 1)]
     public class TerrainGenerator : ScriptableObject
     {
+        [SerializeField] public Material TerrainMaterial;
+
         [SerializeField] private List<BlockSpecification> Blocks;
         [SerializeField] private List<BiomeSpecification> Biomes;
 
         [SerializeField] public int Seed;
 
         [SerializeField] public int WorldHeight = 256;
-        
+
         float3 caveRate = new float3(1, 2, 1);
-        private OpenSimplex2S noiseGen; 
-        public void InitAwake()
+        private OpenSimplex2S noiseSurface;
+        private OpenSimplex2S noiseBottom;
+
+        public void InitAwake(bool client)
         {
             Seed = Random.Range(10, 10000);
-            noiseGen = new OpenSimplex2S(Seed);
+            noiseSurface = new OpenSimplex2S(Seed);
+            noiseBottom = new OpenSimplex2S(Seed * 2);
+            
+            BlockSpecification[] blocks = Resources.LoadAll<BlockSpecification>("Blocks");
+            for (int i = 0; i < blocks.Length; i++)
+            {
+                blocks[i].blockId = (uint) (i);
+                BlockId.Blocks[i] = new BlockId(i);
+            }
+
+            if (client)
+            {
+                Texture2DArray texture2DArray = new Texture2DArray(128, 128, blocks.Length, TextureFormat.RGB24, true);
+                for (int i = 0; i < blocks.Length; i++)
+                {
+                    if (blocks[i].ViewType == ViewType.Block)
+                    {
+                        texture2DArray.SetPixels(blocks[i].Texture.GetPixels(0), i);
+                    }
+                }
+
+                texture2DArray.Apply();
+                TerrainMaterial.SetTexture("_TextureArray", texture2DArray);
+            }
         }
 
         public ChunkData GenerateNewChunk(Vector2Int chunkPosition)
@@ -42,18 +69,21 @@ namespace Map
 
             for (int x = 0; x < GameSettings.CHUNK_SIZE; x++)
             {
-                float tx = (chunkPosition.x * GameSettings.CHUNK_SIZE  + x ) ;
+                float tx = (chunkPosition.x * GameSettings.CHUNK_SIZE + x);
                 for (int y = 0; y < GameSettings.CHUNK_SIZE; y++)
                 {
                     BiomeSpecification biomeSpecification = resolveBiome(chunkPosition);
-                    float heightVariation = biomeSpecification.MaxHeight - biomeSpecification.MinHeight;
-                    float ty = (chunkPosition.y * GameSettings.CHUNK_SIZE  + y)  ;
-                    double height = Map.Perlin.Fbm(tx / 50, ty / 50, 5) *heightVariation+ biomeSpecification.MinHeight;
+                    int heightVariation = biomeSpecification.MaxHeight - biomeSpecification.MinHeight;
+                    float ty = (chunkPosition.y * GameSettings.CHUNK_SIZE + y);
                     
-                    for (int h = 0; h < height; h++)
+                    int top = biomeSpecification.MinHeight + (int) (Noise2Fbm(tx / 100, ty / 100, 5, noiseSurface) * heightVariation) ;
+                    int bottom = 0;// (int)(biomeSpecification.MinHeight * Noise2Fbm(tx / 200, ty / 200, 10, noiseBottom)) + heightVariation;
+
+                    for (int h = top; h >= bottom; h--)
                     {
                         BlockId blockId = Get(
-                            (float) height,
+                            top,
+                            bottom,
                             new Vector3Int(chunkPosition.x * GameSettings.CHUNK_SIZE + x, h,
                                 chunkPosition.y * GameSettings.CHUNK_SIZE + y));
                         slices[h].Set(x, y, blockId);
@@ -88,7 +118,7 @@ namespace Map
             return Get(chunkPosition, ToBlockInChunkPos(chunkPosition, blockPosition));
         }
 
-        public BlockId Get(float height, Vector3Int blockGlobalPosition)
+        public BlockId Get(int top, int bottom, Vector3Int blockGlobalPosition)
         {
             BiomeSpecification biomeSpecification =
                 resolveBiome(new Vector2Int(blockGlobalPosition.x, blockGlobalPosition.z));
@@ -105,16 +135,17 @@ namespace Map
                 return new BlockId {Id = 1};
             }
 
-            if (blockGlobalPosition.y <= height)
+            if (blockGlobalPosition.y <= top)
             {
                 // float airNoise = Mathf.Abs(Perlin.Noise(blockGlobalPosition.x / 20f, blockGlobalPosition.y / 30f,
                 //     blockGlobalPosition.z / 20f));
                 //float airNoise = Mathf.Abs(noise.cnoise(new float3(blockGlobalPosition.x, blockGlobalPosition.y, blockGlobalPosition.z) / caveRate  + Seed));
                 // double airNoise = Fbm(blockGlobalPosition, 5);
-                double airNoise = 1;// noiseGen.Noise3_Classic(blockGlobalPosition.x, blockGlobalPosition.y, blockGlobalPosition.z);
+                double
+                    airNoise = 1; // noiseGen.Noise3_Classic(blockGlobalPosition.x, blockGlobalPosition.y, blockGlobalPosition.z);
                 if (airNoise > 0.05335f)
                 {
-                    if (height - blockGlobalPosition.y < 5)
+                    if (top - blockGlobalPosition.y < 5)
                     {
                         return BlockId.of(biomeSpecification.topBlock.blockId);
                     }
@@ -127,45 +158,32 @@ namespace Map
 
             return BlockId.AIR;
         }
-
-        public double Fbm(Vector3Int coord, int octave)
+        
+        public float Noise2Fbm(float x, float y, int octave, OpenSimplex2S noiseGen)
         {
-            double f = 0.0;
-            float w = 0.5f;
-            for (int i = 0; i < octave; i++)
+            double f = 0.0f;
+            var w = 0.5f;
+            for (var i = 0; i < octave; i++)
             {
-                f += w * noiseGen.Noise3_XZBeforeY(coord.x, coord.y, coord.z);
-                coord *= 2;
+                f += w * noiseGen.Noise2(x,y);
+                x *= 2.0f;
+                y *= 2.0f;
                 w *= 0.5f;
             }
 
-            return f;
-        }
-        
-        
-        
-        float noiseFbm(Vector3 pos)
-        {
-            Vector3 p = pos * caveRate;
-            float r = 0;
-            for (int i = 1; i <= 5; i++)
-            {
-                r += Perlin.Noise(new Vector3(1 / (p.x + Seed / i), 1 / (p.y + Seed / i), 1 / (p.z + Seed / i)));
-            }
-
-            return Mathf.Abs(r / 5);
+            return Mathf.Abs((float) f);
         }
 
-        float Noise2Fbm(float x, float y)
-        {
-            float r = 0;
-            for (float i = 1; i <= 5; i++)
-            {
-                r += Perlin.Noise(x/i + Seed, y / i + Seed);
-            }
-
-            return Mathf.Abs(r / 5);
-        }
+        // double Noise2Fbm(float x, float y, int octaves, OpenSimplex2S noiseGen)
+        // {
+        //     double r = 0;
+        //     for (float i = 1; i <= octaves; i++)
+        //     {
+        //         r += noiseGen.Noise2(x / i, y / i);
+        //     }
+        //
+        //     return r / octaves;
+        // }
 
         public BlockInfo Get(Vector2Int chunkPosition, Vector3Int blockInChunkPosition)
         {

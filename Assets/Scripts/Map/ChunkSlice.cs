@@ -63,26 +63,34 @@ namespace Test.Map
 
         public override void Deserialize(NetworkReader reader)
         {
-            isSingleBlock = reader.ReadBoolean();
-            if (isSingleBlock)
+            try
             {
-                singleBlock = BlockId.of(reader.ReadUInt16());
-            }
-            else
-            {
-                blocks = new ushort[reader.ReadInt32()];
-                int shift = 0;
-
-                do
+                isSingleBlock = reader.ReadBoolean();
+                if (isSingleBlock)
                 {
-                    ushort counter = reader.ReadUInt16();
-                    ushort currentBlock = reader.ReadUInt16();
-                    for (int i = 0; i < counter; i++)
+                    singleBlock = BlockId.of(reader.ReadUInt16());
+                }
+                else
+                {
+                    blocks = new ushort[reader.ReadInt32()];
+                    int shift = 0;
+
+                    do
                     {
-                        blocks[shift + i] = currentBlock;
-                    }
-                    shift += counter;
-                } while (shift < blocks.Length);
+                        ushort counter = reader.ReadUInt16();
+                        ushort currentBlock = reader.ReadUInt16();
+                        for (int i = 0; i < counter; i++)
+                        {
+                            blocks[shift + i] = currentBlock;
+                        }
+
+                        shift += counter;
+                    } while (shift < blocks.Length);
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
             }
         }
 
