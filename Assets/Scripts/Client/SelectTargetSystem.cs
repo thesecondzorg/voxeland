@@ -15,6 +15,7 @@ namespace Client
         [SerializeField] private GameObject aim;
         [SerializeField] private Text text;
         private Nullable<Vector3Int> selectedPoint;
+        private Nullable<Vector3Int> processingPoint;
         private Nullable<Vector3Int> placePoint;
         private Vector3 normal;
         [SerializeField] private ChunkLoaderSystem chunkLoaderSystem;
@@ -47,47 +48,45 @@ namespace Client
 
         void MainAction()
         {
-            if (selectedPoint.HasValue)
+            if (!selectedPoint.HasValue) return;
+            if (processingPoint.HasValue && processingPoint.Value == selectedPoint.Value) return;
+            processingPoint = selectedPoint.Value;
+            Vector3 point = selectedPoint.Value;
+            // Debug.Log(point);
+            Vector2Int chunkPosition = GameSettings.ToChunkPos(point);
+            Vector3Int inChunkPos = GameSettings.ToInChunkPos(point);
+            if (chunkLoaderSystem.TryUpdateBlock(chunkPosition, inChunkPos, BlockId.AIR, out BlockId oldId))
             {
-                Vector3 point = selectedPoint.Value;
-                // Debug.Log(point);
-                Vector2Int chunkPosition = GameSettings.ToChunkPos(point);
-                Vector3Int inChunkPos = GameSettings.ToInChunkPos(point);
-                if (worldHolder.TryGet(chunkPosition, out Chunk chunk))
+                BlockUpdateRequest request = new BlockUpdateRequest
                 {
-                    BlockId blockId = chunk.chunk.GetId(inChunkPos);
-                    // Debug.Log(blockId);
-                    BlockUpdateRequest request = new BlockUpdateRequest
-                    {
-                        chunkPosition = chunkPosition,
-                        inChunkPosition = inChunkPos,
-                        blockId = BlockId.AIR
-                    };
-                    NetworkClient.Send(request);
-                    chunkLoaderSystem.OnBlockUpdateRequest(request);
-                }
+                    chunkPosition = chunkPosition,
+                    inChunkPosition = inChunkPos,
+                    blockId = BlockId.AIR
+                };
+                NetworkClient.Send(request);
+                selectedPoint = null;
             }
         }
 
         void SecondAction()
         {
-            if (placePoint.HasValue)
+            if (!placePoint.HasValue) return;
+            if (processingPoint.HasValue && processingPoint.Value == placePoint.Value) return;
+            processingPoint = placePoint.Value;
+            Vector3 point = placePoint.Value;
+            // Debug.Log(point);
+            Vector2Int chunkPosition = GameSettings.ToChunkPos(point);
+            Vector3Int inChunkPos = GameSettings.ToInChunkPos(point);
+            if (worldHolder.TryGet(chunkPosition, out Chunk chunk))
             {
-                Vector3 point = placePoint.Value;
-                // Debug.Log(point);
-                Vector2Int chunkPosition = GameSettings.ToChunkPos(point);
-                Vector3Int inChunkPos = GameSettings.ToInChunkPos(point);
-                if (worldHolder.TryGet(chunkPosition, out Chunk chunk))
+                BlockId blockId = chunk.chunk.GetId(inChunkPos);
+                // Debug.Log(blockId);
+                NetworkClient.Send(new BlockUpdateRequest
                 {
-                    BlockId blockId = chunk.chunk.GetId(inChunkPos);
-                    // Debug.Log(blockId);
-                    NetworkClient.Send(new BlockUpdateRequest
-                    {
-                        chunkPosition = chunkPosition,
-                        inChunkPosition = inChunkPos,
-                        blockId = BlockId.of(1)
-                    });
-                }
+                    chunkPosition = chunkPosition,
+                    inChunkPosition = inChunkPos,
+                    blockId = BlockId.of(1)
+                });
             }
         }
 
@@ -102,13 +101,14 @@ namespace Client
                     Vector3 point = hit.point;
                     normal = hit.normal;
                     DrawSelectBox(point, normal);
-                    
-                    selectedPoint = (point + new Vector3(0.5f, 0.5f, 0.5f) - normal * 0.02f).Floor(); 
-                    placePoint = (point + new Vector3(0.5f, 0.5f, 0.5f) + normal * 0.02f).Floor(); 
-                    
+
+                    selectedPoint = (point + new Vector3(0.5f, 0.5f, 0.5f) - normal * 0.02f).Floor();
+                    placePoint = (point + new Vector3(0.5f, 0.5f, 0.5f) + normal * 0.02f).Floor();
+
                     Vector2Int chunkPosition = GameSettings.ToChunkPos(selectedPoint.Value);
                     Vector3Int inChunkPos = GameSettings.ToInChunkPos(selectedPoint.Value);
-                    text.text = point.ToString() + " \n " + chunkPosition + "\n " + inChunkPos + "\n" + (selectedPoint.Value);
+                    text.text = point.ToString() + " \n " + chunkPosition + "\n " + inChunkPos + "\n" +
+                                (selectedPoint.Value);
                 }
                 else
                 {
@@ -121,15 +121,15 @@ namespace Client
             }
         }
 
-       
+
         private void DrawSelectBox(Vector3 point, Vector3 normal)
         {
             selectoionTransform.gameObject.SetActive(true);
 
             Vector3 selectedPoint2 =
                 new Vector3(
-                    normal.x == 0f ? Mathf.Round(point.x) : (point.x + normal.x * 0.02f), 
-                    normal.y == 0f ? Mathf.Round(point.y) : (point.y + normal.y * 0.02f), 
+                    normal.x == 0f ? Mathf.Round(point.x) : (point.x + normal.x * 0.02f),
+                    normal.y == 0f ? Mathf.Round(point.y) : (point.y + normal.y * 0.02f),
                     normal.z == 0f ? Mathf.Round(point.z) : (point.z + normal.z * 0.02f));
             selectoionTransform.position = selectedPoint2;
 

@@ -99,6 +99,12 @@ public class PlayerInputSystem : NetworkBehaviour
             newPosition = null;
         } 
         Move();
+        if (Input.GetKeyUp(KeyCode.P))
+        {
+            Vector3 position = transform.position;
+            position = new Vector3(position.x , 100, position.z);
+            transform.position = position;
+        }
     }
 
     private void Move()

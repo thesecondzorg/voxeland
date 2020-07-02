@@ -183,11 +183,11 @@ namespace Client
             // }
         }
 
-        private bool TestSide(BlockId blockId, int x, int h, int y)
+        private bool TestSide(BlockSpecification spec, int x, int h, int y)
         {
             if (h < 0 || h >= terrainGenerator.WorldHeight)
             {
-                return true;
+                return false;
             }
 
             BlockId neighborId;
@@ -222,7 +222,7 @@ namespace Client
                 Stopwatch t = Stopwatch.StartNew();
                 view = GenObjectsView();
                 t.Stop();
-                Debug.Log("Mesh generated in " + t.ElapsedMilliseconds);
+                Debug.Log($"Mesh generated in {t.ElapsedMilliseconds} for chunk {ChunkData.chunkPosition}" );
             }
             catch (Exception e)
             {
@@ -230,98 +230,69 @@ namespace Client
             }
         }
 
-        public static Constructor FindConstructor(Dictionary<BlockId, Constructor> constructors, BlockId blockId)
-        {
-            if (!constructors.ContainsKey(blockId))
-            {
-                constructors[blockId] = new Constructor {blockId = blockId};
-            }
-
-            return constructors[blockId];
-        }
-
-        public static Constructor FindConstructor(List<Constructor> constructors, BlockId blockId)
-        {
-            return constructors[0];
-            // foreach (Constructor constructor in constructors)
-            // {
-            //     if (constructor.blockId.Equals(blockId))
-            //     {
-            //         return constructor;
-            //     }
-            // }
-            // Constructor cstr = new Constructor {blockId = blockId};
-            // constructors.Add(cstr);
-            // return cstr;
-        }
-
+        Vector3Int LEFT = new Vector3Int(1, 0, 0);
+        Vector3Int RIGHT = new Vector3Int(-1, 0, 0);
+        Vector3Int FORWARD = new Vector3Int(0, 0, 1);
+        Vector3Int BACKWARD = new Vector3Int(0, 0, -1);
+        Vector3Int UP = new Vector3Int(0, 1, 0);
+        Vector3Int DOWN = new Vector3Int(0, -1, 0);
+        
         private View GenObjectsView()
         {
-            //Dictionary<BlockId, Constructor> constructors = new Dictionary<BlockId, Constructor>(3);
             Stopwatch timer = Stopwatch.StartNew();
-            Constructor constructor = new Constructor();
-            for (int hi = 0; hi < terrainGenerator.WorldHeight - 1; ++hi)
+            Constructor solidConstructor = new Constructor();
+            Constructor liquidConstructor = new Constructor();
+            for (int hi = 0; hi < GameSettings.WORLD_HEIGHT - 1; ++hi)
             {
                 ChunkSlice slice = ChunkData.GetSlice(hi);
-                if (slice != null)
+                if (slice == null) continue;
+                for (int yi = 0; yi < GameSettings.CHUNK_SIZE; ++yi)
                 {
-                    for (int yi = 0; yi < GameSettings.CHUNK_SIZE; ++yi)
+                    for (int xi = 0; xi < GameSettings.CHUNK_SIZE; ++xi)
                     {
-                        for (int xi = 0; xi < GameSettings.CHUNK_SIZE; ++xi)
+                        BlockId blockId = slice.GetId(xi, yi);
+                        if (Equals(blockId, BlockId.AIR))
                         {
-                            BlockId blockId = slice.GetId(xi, yi);
-                            if (Equals(blockId, BlockId.AIR))
-                            {
-                                continue;
-                            }
+                            continue;
+                        }
+                        BlockSpecification spec = terrainGenerator.GetBlockData(blockId);
+                        Constructor constructor = spec.IsSolid ? solidConstructor : liquidConstructor;
+                        
+                        // Zpos
+                        Vector2 material = new Vector2(blockId.Id, 1);
+                        if (TestSide(spec, xi, hi + 1, yi))
+                        {
+                            ChunkMesh.AddSide_ZP(constructor, xi, hi, yi, material);
+                        }
+                            
+                        // Zneg
+                        if (TestSide(spec, xi, hi - 1, yi))
+                        {
+                            ChunkMesh.AddSide_ZN(constructor, xi, hi, yi, material);
+                        }
 
-                            // BlockSpecification spec = terrainGenerator.GetBlockData(blockId);
+                        // Xpoz
+                        if (TestSide(spec, xi + 1, hi, yi))
+                        {
+                            ChunkMesh.AddSide_XP(constructor, xi, hi, yi, material);
+                        }
 
-                            // Zpos
-                            if (TestSide(blockId, xi, hi + 1, yi))
-                            {
-                                // uint destroyAnim = FindDestroyAnim(chunk, id, xi, hi, yi);
-                                ChunkMesh.AddSide_ZP(constructor, xi, hi, yi, new Vector2(blockId.Id, 1));
-                            }
+                        // Xneg
+                        if (TestSide(spec, xi - 1, hi, yi))
+                        {
+                            ChunkMesh.AddSide_XN(constructor, xi, hi, yi, material);
+                        }
 
-                            //
-                            // // Zneg
-                            if (TestSide(blockId, xi, hi - 1, yi))
-                            {
-                                // uint destroyAnim = FindDestroyAnim(chunk, id, xi, hi, yi);
-                                ChunkMesh.AddSide_ZN(constructor, xi, hi, yi, new Vector2(blockId.Id, 1));
-                            }
+                        // Ypoz
+                        if (TestSide(spec, xi, hi, yi + 1))
+                        {
+                            ChunkMesh.AddSide_YP(constructor, xi, hi, yi, material);
+                        }
 
-                            // // Xpoz
-                            if (TestSide(blockId, xi + 1, hi, yi))
-                            {
-                                // uint destroyAnim = FindDestroyAnim(chunk, id, xi, hi, yi);
-                                ChunkMesh.AddSide_XP(constructor, xi, hi, yi, new Vector2(blockId.Id, 1));
-                            }
-
-                            // // Xneg
-                            if (TestSide(blockId, xi - 1, hi, yi))
-                            {
-                                // uint destroyAnim = FindDestroyAnim(chunk, id, xi, hi, yi);
-                                ChunkMesh.AddSide_XN(constructor, xi, hi, yi, new Vector2(blockId.Id, 1));
-                            }
-
-                            // // Ypoz
-
-                            if (TestSide(blockId, xi, hi, yi + 1))
-                            {
-                                // uint destroyAnim = FindDestroyAnim(chunk, id, xi, hi, yi);
-                                ChunkMesh.AddSide_YP(constructor, xi, hi, yi, new Vector2(blockId.Id, 1));
-                            }
-
-
-                            // // Ypoz
-
-                            if (TestSide(blockId, xi, hi, yi - 1))
-                            {
-                                // uint destroyAnim = FindDestroyAnim(chunk, id, xi, hi, yi);
-                                ChunkMesh.AddSide_YN(constructor, xi, hi, yi, new Vector2(blockId.Id, 1));
-                            }
+                        // Ypoz
+                        if (TestSide(spec, xi, hi, yi - 1))
+                        {
+                            ChunkMesh.AddSide_YN(constructor, xi, hi, yi, material);
                         }
                     }
                 }
@@ -334,12 +305,12 @@ namespace Client
 
             MeshBuilder mesh = new MeshBuilder
             {
-                blockId = constructor.blockId,
-                vertices = constructor.vertices.ToArray(),
-                normals = constructor.normals.ToArray(),
-                uv = constructor.uv.ToArray(),
-                tiles = constructor.tiles.ToArray(),
-                triangles = constructor.triangles.ToArray()
+                blockId = solidConstructor.blockId,
+                vertices = solidConstructor.vertices.ToArray(),
+                normals = solidConstructor.normals.ToArray(),
+                uv = solidConstructor.uv.ToArray(),
+                tiles = solidConstructor.tiles.ToArray(),
+                triangles = solidConstructor.triangles.ToArray()
             };
             chunk_view.mesh.Add(mesh);
 

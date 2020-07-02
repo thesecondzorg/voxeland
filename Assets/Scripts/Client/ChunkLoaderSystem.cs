@@ -53,19 +53,28 @@ namespace Client
             NetworkClient.RegisterHandler<BlockUpdateRequest>(OnBlockUpdateRequest);
             Debug.Log("Start client load map");
         }
+        private void OnBlockUpdateRequest(BlockUpdateRequest obj)
+        {
+            if (TryUpdateBlock(obj.chunkPosition, obj.inChunkPosition, obj.blockId, out BlockId oldId))
+            {
+                // TODO drop block
+            }
+        }
 
-        public void OnBlockUpdateRequest(BlockUpdateRequest obj)
+        public bool TryUpdateBlock(Vector2Int chunkPosition, Vector3Int inChunkPosition, BlockId blockId, out BlockId oldId)
         {
             Debug.Log("Update block");
+            oldId = BlockId.AIR;
+            Chunk chunk;
             lock (worldHolder)
             {
-                if (!worldHolder.TryGet(obj.chunkPosition, out Chunk chunk)) return;
-                Vector3Int inChunkPosition = obj.inChunkPosition;
-                chunk.chunk.slices[inChunkPosition.y].Set(inChunkPosition.x, inChunkPosition.z, obj.blockId);
-                chunk.Reload(true);
-                renderSystem.ReceiveChunk(chunk.chunk);
-                TestSide(obj.inChunkPosition, obj.chunkPosition);
+                if (!worldHolder.TryGet(chunkPosition, out chunk)) return false;
             }
+            oldId = chunk.chunk.slices[inChunkPosition.y].Set(inChunkPosition.x, inChunkPosition.z, blockId);
+            chunk.Reload(true);
+            renderSystem.ReceiveChunk(chunk.chunk);
+            TestSide(inChunkPosition, chunkPosition);
+            return true;
         }
 
         private void TestSide(Vector3Int inChunkPosition, Vector2Int chunkPosition)
