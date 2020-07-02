@@ -22,8 +22,8 @@ namespace Client
         void Start()
         {
             meshRenderer = GetComponent<MeshRenderer>();
-            meshRenderer.material.SetVector("_TextureIndex",
-                new Vector4((int) meshBuilder.blockId.Id, meshBuilder.damage));
+            // meshRenderer.material.SetVector("_TextureIndex",
+            //     new Vector4((int) meshBuilder.blockId.Id, meshBuilder.damage));
         }
 
         // Update is called once per frame
@@ -44,6 +44,7 @@ namespace Client
                 vertices = meshBuilder.vertices,
                 normals = meshBuilder.normals,
                 uv = meshBuilder.uv,
+                uv2 = meshBuilder.tiles,
                 triangles = meshBuilder.triangles
             };
             mesh.RecalculateBounds();
@@ -57,7 +58,6 @@ namespace Client
             }
             
             collider = gameObject.AddComponent<MeshCollider>();
-            // collider.sharedMesh = mesh;
             ready = true;
             timer.Stop();
             Debug.Log("Render chunk took " + timer.ElapsedMilliseconds);

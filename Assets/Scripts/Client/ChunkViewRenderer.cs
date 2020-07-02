@@ -45,7 +45,7 @@ namespace Client
             // Debug.Log("Submit processing " + ChunkData.chunkPosition);
             renderStartTime = Time.fixedTime;
         }
-        
+
         void Update()
         {
             if (!ready && view != null)
@@ -54,9 +54,10 @@ namespace Client
                 // Debug.Log("Start rendering " + ChunkData.chunkPosition + "  " + view.mesh.Count);
                 float t = Time.fixedTime;
                 RenderChunk(ChunkData.chunkPosition, view);
-                Debug.Log("Chunk " + ChunkData.chunkPosition  + " rendered in " +(Time.fixedTime - t)+ " with delay " +  ( t - renderStartTime) );
+                Debug.Log("Chunk " + ChunkData.chunkPosition + " rendered in " + (Time.fixedTime - t) + " with delay " +
+                          (t - renderStartTime));
             }
-            
+
             // lock (ChunkData)
             {
                 if (ready && enableColliderTargetStatus.HasValue)
@@ -66,6 +67,7 @@ namespace Client
                         UpdateCollider updateCollider = part.Value.gameObject.AddComponent<UpdateCollider>();
                         updateCollider.State = enableColliderTargetStatus.Value;
                     }
+
                     enableColliderTargetStatus = null;
                 }
             }
@@ -76,6 +78,7 @@ namespace Client
                 {
                     part.Notify = false;
                 }
+
                 ChunkReadyCallBack.Invoke(ChunkData.chunkPosition, this);
             }
         }
@@ -103,6 +106,7 @@ namespace Client
                     go = Instantiate(ChunkPart, transform, false);
                     parts[blockId] = go;
                 }
+
                 BlockSpecification blockData = terrainGenerator.GetBlockData(blockId);
                 go.name = $"Chunk {chunkPos.x}:{chunkPos.y} [{blockData.Name}]";
                 go.meshBuilder = ch.mesh[i];
@@ -158,7 +162,6 @@ namespace Client
 
                 // go.transform.position =
                 //     new Vector3(chunkPos.x * ChunkGenerator.g_size, 0.0f, chunkPos.y * ChunkGenerator.g_size);
-
             }
 
             // foreach (ChunkMesh.ObjectView view in ch.objects)
@@ -209,9 +212,9 @@ namespace Client
                 neighborId = ChunkData.GetId(x, h, y);
             }
 
-            return neighborId.Equals( BlockId.AIR) ;
+            return neighborId.Equals(BlockId.AIR);
         }
-        
+
         private void GenObjectsViewAsync(object state)
         {
             try
@@ -236,33 +239,32 @@ namespace Client
 
             return constructors[blockId];
         }
-        
+
         public static Constructor FindConstructor(List<Constructor> constructors, BlockId blockId)
         {
-            foreach (Constructor constructor in constructors)
-            {
-                if (constructor.blockId.Equals(blockId))
-                {
-                    return constructor;
-                }
-            }
-            Constructor cstr = new Constructor {blockId = blockId};
-            constructors.Add(cstr);
-            return cstr;
+            return constructors[0];
+            // foreach (Constructor constructor in constructors)
+            // {
+            //     if (constructor.blockId.Equals(blockId))
+            //     {
+            //         return constructor;
+            //     }
+            // }
+            // Constructor cstr = new Constructor {blockId = blockId};
+            // constructors.Add(cstr);
+            // return cstr;
         }
 
         private View GenObjectsView()
         {
             //Dictionary<BlockId, Constructor> constructors = new Dictionary<BlockId, Constructor>(3);
             Stopwatch timer = Stopwatch.StartNew();
-            List<Constructor> constructors = new List<Constructor>();
-
+            Constructor constructor = new Constructor();
             for (int hi = 0; hi < terrainGenerator.WorldHeight - 1; ++hi)
             {
                 ChunkSlice slice = ChunkData.GetSlice(hi);
                 if (slice != null)
                 {
-
                     for (int yi = 0; yi < GameSettings.CHUNK_SIZE; ++yi)
                     {
                         for (int xi = 0; xi < GameSettings.CHUNK_SIZE; ++xi)
@@ -279,7 +281,7 @@ namespace Client
                             if (TestSide(blockId, xi, hi + 1, yi))
                             {
                                 // uint destroyAnim = FindDestroyAnim(chunk, id, xi, hi, yi);
-                                ChunkMesh.AddSide_ZP(FindConstructor(constructors, blockId), xi, hi, yi);
+                                ChunkMesh.AddSide_ZP(constructor, xi, hi, yi, new Vector2(blockId.Id, 1));
                             }
 
                             //
@@ -287,21 +289,21 @@ namespace Client
                             if (TestSide(blockId, xi, hi - 1, yi))
                             {
                                 // uint destroyAnim = FindDestroyAnim(chunk, id, xi, hi, yi);
-                                ChunkMesh.AddSide_ZN(FindConstructor(constructors, blockId), xi, hi, yi);
+                                ChunkMesh.AddSide_ZN(constructor, xi, hi, yi, new Vector2(blockId.Id, 1));
                             }
 
                             // // Xpoz
                             if (TestSide(blockId, xi + 1, hi, yi))
                             {
                                 // uint destroyAnim = FindDestroyAnim(chunk, id, xi, hi, yi);
-                                ChunkMesh.AddSide_XP(FindConstructor(constructors, blockId), xi, hi, yi);
+                                ChunkMesh.AddSide_XP(constructor, xi, hi, yi, new Vector2(blockId.Id, 1));
                             }
 
                             // // Xneg
                             if (TestSide(blockId, xi - 1, hi, yi))
                             {
                                 // uint destroyAnim = FindDestroyAnim(chunk, id, xi, hi, yi);
-                                ChunkMesh.AddSide_XN(FindConstructor(constructors, blockId), xi, hi, yi);
+                                ChunkMesh.AddSide_XN(constructor, xi, hi, yi, new Vector2(blockId.Id, 1));
                             }
 
                             // // Ypoz
@@ -309,7 +311,7 @@ namespace Client
                             if (TestSide(blockId, xi, hi, yi + 1))
                             {
                                 // uint destroyAnim = FindDestroyAnim(chunk, id, xi, hi, yi);
-                                ChunkMesh.AddSide_YP(FindConstructor(constructors, blockId), xi, hi, yi);
+                                ChunkMesh.AddSide_YP(constructor, xi, hi, yi, new Vector2(blockId.Id, 1));
                             }
 
 
@@ -318,7 +320,7 @@ namespace Client
                             if (TestSide(blockId, xi, hi, yi - 1))
                             {
                                 // uint destroyAnim = FindDestroyAnim(chunk, id, xi, hi, yi);
-                                ChunkMesh.AddSide_YN(FindConstructor(constructors, blockId), xi, hi, yi);
+                                ChunkMesh.AddSide_YN(constructor, xi, hi, yi, new Vector2(blockId.Id, 1));
                             }
                         }
                     }
@@ -329,20 +331,18 @@ namespace Client
             {
                 // objects = GenObjects(chunk)
             };
-            foreach ( Constructor pair in constructors)
+
+            MeshBuilder mesh = new MeshBuilder
             {
-                if (pair.vertices.Count == 0)
-                    continue;
-                MeshBuilder mesh = new MeshBuilder
-                {
-                    blockId = pair.blockId,
-                    vertices = pair.vertices.ToArray(),
-                    normals = pair.normals.ToArray(),
-                    uv = pair.uv.ToArray(),
-                    triangles = pair.triangles.ToArray()
-                };
-                chunk_view.mesh.Add(mesh);
-            }
+                blockId = constructor.blockId,
+                vertices = constructor.vertices.ToArray(),
+                normals = constructor.normals.ToArray(),
+                uv = constructor.uv.ToArray(),
+                tiles = constructor.tiles.ToArray(),
+                triangles = constructor.triangles.ToArray()
+            };
+            chunk_view.mesh.Add(mesh);
+
             timer.Stop();
             Debug.Log("Mesh generation finished in " + timer.ElapsedMilliseconds);
             return chunk_view;
@@ -359,6 +359,7 @@ namespace Client
             public Vector3[] vertices;
             public Vector3[] normals;
             public Vector2[] uv;
+            public Vector2[] tiles;
             public int[] triangles;
             public float damage;
         }
@@ -375,6 +376,7 @@ namespace Client
             {
                 Destroy(keyValuePair.Value.gameObject);
             }
+
             Destroy(this.gameObject);
         }
     }

@@ -54,7 +54,7 @@ public class ChunkMesh
 
     private static readonly Vector2[] s_uv_zp =
         {new Vector2(1.0f, 0.0f), new Vector2(1.0f, 1.0f), new Vector2(0.0f, 1.0f), new Vector2(0.0f, 0.0f)};
-    
+
 
     public class Constructor
     {
@@ -62,6 +62,7 @@ public class ChunkMesh
         public List<Vector3> vertices;
         public List<Vector3> normals;
         public List<Vector2> uv;
+        public List<Vector2> tiles;
         public List<int> triangles;
 
         public Constructor()
@@ -69,6 +70,7 @@ public class ChunkMesh
             vertices = new List<Vector3>(1024);
             normals = new List<Vector3>(1024);
             uv = new List<Vector2>(1024);
+            tiles = new List<Vector2>(1024);
             triangles = new List<int>(1024);
         }
 
@@ -83,7 +85,7 @@ public class ChunkMesh
 
     #region Sides
 
-    public static void AddSide_XP(Constructor con, int x, int y, int z)
+    public static void AddSide_XP(Constructor con, int x, int y, int z, Vector2 tile)
     {
         int n = con.vertices.Count;
 
@@ -95,6 +97,8 @@ public class ChunkMesh
         con.normals.AddRange(s_normal_xp);
         con.uv.AddRange(s_uv_xp);
         
+        con.tiles.AddRange(new[] {tile, tile, tile, tile});
+        
         con.triangles.Add(n + 3);
         con.triangles.Add(n + 2);
         con.triangles.Add(n + 1);
@@ -104,7 +108,7 @@ public class ChunkMesh
         con.triangles.Add(n + 0);
     }
 
-    public static void AddSide_XN(Constructor con, int x, int y, int z)
+    public static void AddSide_XN(Constructor con, int x, int y, int z, Vector2 tile)
     {
         int n = con.vertices.Count;
 
@@ -115,6 +119,7 @@ public class ChunkMesh
 
         con.normals.AddRange(s_normal_xn);
         con.uv.AddRange(s_uv_xp);
+        con.tiles.AddRange(new[] {tile, tile, tile, tile});
         
         con.triangles.Add(n + 0);
         con.triangles.Add(n + 1);
@@ -125,7 +130,7 @@ public class ChunkMesh
         con.triangles.Add(n + 3);
     }
 
-    public static void AddSide_YP(Constructor con, int x, int y, int z)
+    public static void AddSide_YP(Constructor con, int x, int y, int z, Vector2 tile)
     {
         int n = con.vertices.Count;
 
@@ -136,6 +141,7 @@ public class ChunkMesh
 
         con.normals.AddRange(s_normal_yp);
         con.uv.AddRange(s_uv_yp);
+        con.tiles.AddRange(new[] {tile, tile, tile, tile});
         
         con.triangles.Add(n + 3);
         con.triangles.Add(n + 2);
@@ -146,7 +152,7 @@ public class ChunkMesh
         con.triangles.Add(n + 0);
     }
 
-    public static void AddSide_YN(Constructor con, int x, int y, int z)
+    public static void AddSide_YN(Constructor con, int x, int y, int z, Vector2 tile)
     {
         int n = con.vertices.Count;
 
@@ -157,6 +163,7 @@ public class ChunkMesh
 
         con.normals.AddRange(s_normal_yn);
         con.uv.AddRange(s_uv_xp);
+        con.tiles.AddRange(new[] {tile, tile, tile, tile});
         
         con.triangles.Add(n + 0);
         con.triangles.Add(n + 1);
@@ -167,7 +174,7 @@ public class ChunkMesh
         con.triangles.Add(n + 3);
     }
 
-    public static void AddSide_ZP(Constructor con, int x, int y, int z)
+    public static void AddSide_ZP(Constructor con, int x, int y, int z, Vector2 tile)
     {
         int n = con.vertices.Count;
 
@@ -177,8 +184,10 @@ public class ChunkMesh
         con.vertices.Add(new Vector3(x - inBlockShift, y + inBlockShift, z + inBlockShift));
 
         con.normals.AddRange(s_normal_zp);
-        
+
         con.uv.AddRange(s_uv_zp);
+        con.tiles.AddRange(new[] {tile, tile, tile, tile});
+        
         con.triangles.Add(n + 3);
         con.triangles.Add(n + 2);
         con.triangles.Add(n + 1);
@@ -188,7 +197,7 @@ public class ChunkMesh
         con.triangles.Add(n + 0);
     }
 
-    public static void AddSide_ZN(Constructor con, int x, int y, int z)
+    public static void AddSide_ZN(Constructor con, int x, int y, int z, Vector2 tile)
     {
         int n = con.vertices.Count;
 
@@ -199,7 +208,8 @@ public class ChunkMesh
 
         con.normals.AddRange(s_normal_zn);
         con.uv.AddRange(s_uv_xp);
-        
+        con.tiles.AddRange(new[] {tile, tile, tile, tile});
+
         con.triangles.Add(n + 0);
         con.triangles.Add(n + 1);
         con.triangles.Add(n + 2);

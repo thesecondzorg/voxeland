@@ -15,7 +15,7 @@ namespace Client
 {
     public class ChunkLoaderSystem : NetworkBehaviour
     {
-        private int playerVisibility = 5;
+        private int playerVisibility = 25;
         [SerializeField] private WorldRenderSystem renderSystem;
 
         public ChunksHolder worldHolder = new ChunksHolder();
