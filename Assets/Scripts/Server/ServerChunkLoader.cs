@@ -49,8 +49,9 @@ namespace Server
         {
             if (worldHolder.TryGet(msg.chunkPosition, out LoadedChunk chunk))
             {
-                chunk.ChunkData.slices[msg.inChunkPosition.y]
+                BlockId oldBlock = chunk.ChunkData.slices[msg.inChunkPosition.y]
                     .Set(msg.inChunkPosition.x, msg.inChunkPosition.z, msg.blockId);
+                // TODO Send abort message 
                 lock (this)
                 {
                     NetworkServer.SendToAll(msg);

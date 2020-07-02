@@ -288,7 +288,6 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0.1
   renderSystem: {fileID: 6562994509771361034}
-  playerInput: {fileID: -5244593718446207871}
 --- !u!114 &6562994509771361034
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -303,6 +302,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ChunkPrefab: {fileID: 6466441274200278390, guid: 784a523d721624147873e08be6c1ea3e,
     type: 3}
+  texture2DArray: {fileID: 0}
 --- !u!114 &3907498359128017918
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -319,3 +319,4 @@ MonoBehaviour:
     type: 3}
   aim: {fileID: 0}
   text: {fileID: 0}
+  chunkLoaderSystem: {fileID: 8693322153216881400}

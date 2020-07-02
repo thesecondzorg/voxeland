@@ -15,7 +15,7 @@ namespace Client
 {
     public class ChunkLoaderSystem : NetworkBehaviour
     {
-        private int playerVisibility = 10;
+        private int playerVisibility = 5;
         [SerializeField] private WorldRenderSystem renderSystem;
 
         public ChunksHolder worldHolder = new ChunksHolder();
@@ -54,7 +54,7 @@ namespace Client
             Debug.Log("Start client load map");
         }
 
-        private void OnBlockUpdateRequest(BlockUpdateRequest obj)
+        public void OnBlockUpdateRequest(BlockUpdateRequest obj)
         {
             Debug.Log("Update block");
             lock (worldHolder)
@@ -65,12 +65,6 @@ namespace Client
                 chunk.Reload(true);
                 renderSystem.ReceiveChunk(chunk.chunk);
                 TestSide(obj.inChunkPosition, obj.chunkPosition);
-                // {
-                // renderSystem.ReloadChunk(obj.chunkPosition + Vector2Int.left);
-                // renderSystem.ReloadChunk(obj.chunkPosition + Vector2Int.right);
-                // renderSystem.ReloadChunk(obj.chunkPosition + Vector2Int.down);
-                // renderSystem.ReloadChunk(obj.chunkPosition + Vector2Int.up);
-                // }
             }
         }
 
@@ -104,6 +98,10 @@ namespace Client
 
         private void Update()
         {
+            if (!isLocalPlayer)
+            {
+                return;
+            }
             playerPos = transform.position;
             Vector2Int newChunkPos = new Vector2Int(
                 (int) (playerPos.x / GameSettings.CHUNK_SIZE),

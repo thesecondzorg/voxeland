@@ -17,7 +17,7 @@ namespace Client
         private Nullable<Vector3Int> selectedPoint;
         private Nullable<Vector3Int> placePoint;
         private Vector3 normal;
-
+        [SerializeField] private ChunkLoaderSystem chunkLoaderSystem;
         public ChunksHolder worldHolder;
 
         void Start()
@@ -57,12 +57,14 @@ namespace Client
                 {
                     BlockId blockId = chunk.chunk.GetId(inChunkPos);
                     // Debug.Log(blockId);
-                    NetworkClient.Send(new BlockUpdateRequest
+                    BlockUpdateRequest request = new BlockUpdateRequest
                     {
                         chunkPosition = chunkPosition,
                         inChunkPosition = inChunkPos,
                         blockId = BlockId.AIR
-                    });
+                    };
+                    NetworkClient.Send(request);
+                    chunkLoaderSystem.OnBlockUpdateRequest(request);
                 }
             }
         }
