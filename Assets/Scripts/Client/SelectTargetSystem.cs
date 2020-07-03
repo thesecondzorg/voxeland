@@ -85,7 +85,7 @@ namespace Client
                 {
                     chunkPosition = chunkPosition,
                     inChunkPosition = inChunkPos,
-                    blockId = BlockId.of(1)
+                    blockId = BlockId.of(2)
                 });
             }
         }

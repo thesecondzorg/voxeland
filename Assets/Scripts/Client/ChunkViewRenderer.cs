@@ -259,7 +259,7 @@ namespace Client
                         Constructor constructor = spec.IsSolid ? solidConstructor : liquidConstructor;
                         
                         // Zpos
-                        Vector2 material = new Vector2(blockId.Id, 1);
+                        Vector2 material = new Vector2(blockId.Id, 0);
                         if (TestSide(spec, xi, hi + 1, yi))
                         {
                             ChunkMesh.AddSide_ZP(constructor, xi, hi, yi, material);

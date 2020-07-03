@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   blockId: 1
   Name: Dirt
-  Texture: {fileID: 2800000, guid: c892829940c5245d7995a3780a233d51, type: 3}
+  Texture: {fileID: 2800000, guid: 9d88ff57208c64f6b8b116708e98e960, type: 3}
   IsSolid: 1
   Duribality: 10
   ViewType: 1
