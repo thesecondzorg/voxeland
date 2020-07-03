@@ -254,7 +254,7 @@ MonoBehaviour:
   priority: 0
   blendDistance: 0
   weight: 1
-  sharedProfile: {fileID: 11400000, guid: 23730495022bf4b389a0aff42ee6dcdd, type: 2}
+  sharedProfile: {fileID: 0}
 --- !u!1 &98622615
 GameObject:
   m_ObjectHideFlags: 0
@@ -581,7 +581,7 @@ Light:
     m_Type: 2
     m_Resolution: -1
     m_CustomResolution: -1
-    m_Strength: 0.927
+    m_Strength: 1
     m_Bias: 1.63
     m_NormalBias: 0.76
     m_NearPlane: 0.2
@@ -681,7 +681,7 @@ MonoBehaviour:
   priority: 0
   blendDistance: 0
   weight: 1
-  sharedProfile: {fileID: 11400000, guid: 23730495022bf4b389a0aff42ee6dcdd, type: 2}
+  sharedProfile: {fileID: 0}
 --- !u!4 &1431719471
 Transform:
   m_ObjectHideFlags: 0
