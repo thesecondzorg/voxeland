@@ -77,16 +77,16 @@ namespace Client
             // Debug.Log(point);
             Vector2Int chunkPosition = GameSettings.ToChunkPos(point);
             Vector3Int inChunkPos = GameSettings.ToInChunkPos(point);
-            if (worldHolder.TryGet(chunkPosition, out Chunk chunk))
+            if (chunkLoaderSystem.TryUpdateBlock(chunkPosition, inChunkPos, BlockId.AIR, out BlockId oldId))
             {
-                BlockId blockId = chunk.chunk.GetId(inChunkPos);
-                // Debug.Log(blockId);
-                NetworkClient.Send(new BlockUpdateRequest
+                BlockUpdateRequest request = new BlockUpdateRequest
                 {
                     chunkPosition = chunkPosition,
                     inChunkPosition = inChunkPos,
                     blockId = BlockId.of(2)
-                });
+                };
+                NetworkClient.Send(request);
+                selectedPoint = null;
             }
         }
 

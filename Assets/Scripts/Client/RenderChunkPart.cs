@@ -48,6 +48,7 @@ namespace Client
                 triangles = meshBuilder.triangles
             };
             mesh.RecalculateBounds();
+            mesh.RecalculateNormals();
             mesh.UploadMeshData(false); //Finalize
             meshFilter = GetComponent<MeshFilter>();
             meshFilter.mesh = mesh;

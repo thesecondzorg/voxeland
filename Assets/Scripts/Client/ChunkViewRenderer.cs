@@ -34,9 +34,18 @@ namespace Client
 
         private float renderStartTime;
 
+        private MeshFilter meshFilter;
+        private MeshCollider collider;
+        private MeshRenderer meshRenderer;
+        public MeshBuilder meshBuilder;
+        public bool Notify = false;
+
+
         // Start is called before the first frame update
         void Start()
         {
+            meshFilter = GetComponent<MeshFilter>();
+
             name = $"Chunk {ChunkData.chunkPosition.x}, {ChunkData.chunkPosition.y}";
             transform.position = new Vector3(
                 ChunkData.chunkPosition.x * GameSettings.CHUNK_SIZE,
@@ -72,13 +81,9 @@ namespace Client
                 }
             }
 
-            if (parts.Values.All(p => p.Notify))
+            if (Notify)
             {
-                foreach (RenderChunkPart part in parts.Values)
-                {
-                    part.Notify = false;
-                }
-
+                Notify = false;
                 ChunkReadyCallBack.Invoke(ChunkData.chunkPosition, this);
             }
         }
@@ -98,71 +103,73 @@ namespace Client
 
         private void RenderChunk(Vector2Int chunkPos, View ch)
         {
-            for (int i = 0; i < ch.mesh.Count; ++i)
-            {
-                BlockId blockId = ch.mesh[i].blockId;
-                if (!parts.TryGetValue(blockId, out RenderChunkPart go))
-                {
-                    go = Instantiate(ChunkPart, transform, false);
-                    parts[blockId] = go;
-                }
+            meshBuilder = ch.mesh;
+            Reload();
+            // for (int i = 0; i < ch.mesh.Count; ++i)
+            // {
+            //     BlockId blockId = ch.mesh[i].blockId;
+            //     if (!parts.TryGetValue(blockId, out RenderChunkPart go))
+            //     {
+            //         go = Instantiate(ChunkPart, transform, false);
+            //         parts[blockId] = go;
+            //     }
+            //
+            //     BlockSpecification blockData = terrainGenerator.GetBlockData(blockId);
+            //     go.name = $"Chunk {chunkPos.x}:{chunkPos.y} [{blockData.Name}]";
+            //     go.meshBuilder = ch.mesh[i];
+            //     go.Reload();
 
-                BlockSpecification blockData = terrainGenerator.GetBlockData(blockId);
-                go.name = $"Chunk {chunkPos.x}:{chunkPos.y} [{blockData.Name}]";
-                go.meshBuilder = ch.mesh[i];
-                go.Reload();
+            // go.gameObject.layer = 8;
+            // go.GetComponent<MeshRenderer>().material.SetTexture("_TextureArray" , terrainGenerator.texture2DArray);
+            // go.layer = 5;
+            //     // new GameObject(
+            //         // 
+            //     // {
+            //         // layer = 5
+            //     // };
+            // //go.AddComponent<ChunkCleanUp>();
+            // // go.transform.SetParent(transform, false);
+            // Mesh mesh = new Mesh
+            // {
+            //     vertices = ch.mesh[i].vertices,
+            //     normals = ch.mesh[i].normals,
+            //     uv = ch.mesh[i].uv,
+            //     triangles = ch.mesh[i].triangles
+            // };
+            // mesh.RecalculateBounds();
+            // mesh.UploadMeshData(true); //Finalize
+            //
+            // MeshFilter meshFilter = go.GetComponent<MeshFilter>();
+            // meshFilter.mesh = mesh;
+            //
+            // MeshCollider collider = go.GetComponent<MeshCollider>();
+            // collider.sharedMesh = meshFilter.sharedMesh;
+            //
+            // MeshRenderer meshRenderer = go.GetComponent<MeshRenderer>();
+            // meshRenderer.material = Material;
+            // ChunkMesh.TextureIndex texture = ch.mesh[i].texture;
 
-                // go.gameObject.layer = 8;
-                // go.GetComponent<MeshRenderer>().material.SetTexture("_TextureArray" , terrainGenerator.texture2DArray);
-                // go.layer = 5;
-                //     // new GameObject(
-                //         // 
-                //     // {
-                //         // layer = 5
-                //     // };
-                // //go.AddComponent<ChunkCleanUp>();
-                // // go.transform.SetParent(transform, false);
-                // Mesh mesh = new Mesh
-                // {
-                //     vertices = ch.mesh[i].vertices,
-                //     normals = ch.mesh[i].normals,
-                //     uv = ch.mesh[i].uv,
-                //     triangles = ch.mesh[i].triangles
-                // };
-                // mesh.RecalculateBounds();
-                // mesh.UploadMeshData(true); //Finalize
-                //
-                // MeshFilter meshFilter = go.GetComponent<MeshFilter>();
-                // meshFilter.mesh = mesh;
-                //
-                // MeshCollider collider = go.GetComponent<MeshCollider>();
-                // collider.sharedMesh = meshFilter.sharedMesh;
-                //
-                // MeshRenderer meshRenderer = go.GetComponent<MeshRenderer>();
-                // meshRenderer.material = Material;
-                // ChunkMesh.TextureIndex texture = ch.mesh[i].texture;
+            // if (texture.Material == BlockDef.MaterialType.Fluid)
+            // {
+            //     meshRenderer.material = fluidMaterial;
+            // }
+            // else
+            // {
+            //     meshRenderer.material = m_material;
+            //     Vector2 textureOffset = new Vector2Int(texture.Id % 16, texture.Id / 16);
+            //     meshRenderer.material.SetVector(mainTextureOffsetId, textureOffset);
+            //     if (texture.Destroy > 0)
+            //     {
+            //         Vector2 textureDestroyOffset = new Vector2(texture.Destroy, 0);
+            //         meshRenderer.material.SetVector(detailedTextureOffsetId, textureDestroyOffset);
+            //     }
+            // }
 
-                // if (texture.Material == BlockDef.MaterialType.Fluid)
-                // {
-                //     meshRenderer.material = fluidMaterial;
-                // }
-                // else
-                // {
-                //     meshRenderer.material = m_material;
-                //     Vector2 textureOffset = new Vector2Int(texture.Id % 16, texture.Id / 16);
-                //     meshRenderer.material.SetVector(mainTextureOffsetId, textureOffset);
-                //     if (texture.Destroy > 0)
-                //     {
-                //         Vector2 textureDestroyOffset = new Vector2(texture.Destroy, 0);
-                //         meshRenderer.material.SetVector(detailedTextureOffsetId, textureDestroyOffset);
-                //     }
-                // }
+            //go.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
 
-                //go.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
-
-                // go.transform.position =
-                //     new Vector3(chunkPos.x * ChunkGenerator.g_size, 0.0f, chunkPos.y * ChunkGenerator.g_size);
-            }
+            // go.transform.position =
+            //     new Vector3(chunkPos.x * ChunkGenerator.g_size, 0.0f, chunkPos.y * ChunkGenerator.g_size);
+            // }
 
             // foreach (ChunkMesh.ObjectView view in ch.objects)
             // {
@@ -181,6 +188,33 @@ namespace Client
             //     go.transform.localRotation = Quaternion.Euler(eulerAngles.x, view.Rotation.y * 90 - 180, eulerAngles.z);
             //     go_list.Add(go);
             // }
+        }
+
+        private void Reload()
+        {
+            Stopwatch timer = Stopwatch.StartNew();
+            Mesh mesh = new Mesh
+            {
+                vertices = meshBuilder.vertices,
+                normals = meshBuilder.normals,
+                uv = meshBuilder.uv,
+                uv2 = meshBuilder.tiles,
+                triangles = meshBuilder.triangles
+            };
+            mesh.RecalculateBounds();
+            mesh.RecalculateNormals();
+            mesh.UploadMeshData(false); //Finalize
+            meshFilter.mesh = mesh;
+
+            foreach (MeshCollider meshCollider in gameObject.GetComponents<MeshCollider>())
+            {
+                Destroy(meshCollider);
+            }
+            
+            collider = gameObject.AddComponent<MeshCollider>();
+            Notify = true;
+            timer.Stop();
+            Debug.Log("Render chunk took " + timer.ElapsedMilliseconds);
         }
 
         private bool TestSide(BlockSpecification spec, int x, int h, int y)
@@ -222,7 +256,7 @@ namespace Client
                 Stopwatch t = Stopwatch.StartNew();
                 view = GenObjectsView();
                 t.Stop();
-                Debug.Log($"Mesh generated in {t.ElapsedMilliseconds} for chunk {ChunkData.chunkPosition}" );
+                Debug.Log($"Mesh generated in {t.ElapsedMilliseconds} for chunk {ChunkData.chunkPosition}");
             }
             catch (Exception e)
             {
@@ -236,7 +270,7 @@ namespace Client
         Vector3Int BACKWARD = new Vector3Int(0, 0, -1);
         Vector3Int UP = new Vector3Int(0, 1, 0);
         Vector3Int DOWN = new Vector3Int(0, -1, 0);
-        
+
         private View GenObjectsView()
         {
             Stopwatch timer = Stopwatch.StartNew();
@@ -255,16 +289,17 @@ namespace Client
                         {
                             continue;
                         }
+
                         BlockSpecification spec = terrainGenerator.GetBlockData(blockId);
                         Constructor constructor = spec.IsSolid ? solidConstructor : liquidConstructor;
-                        
+
                         // Zpos
                         Vector2 material = new Vector2(blockId.Id, 0);
                         if (TestSide(spec, xi, hi + 1, yi))
                         {
                             ChunkMesh.AddSide_ZP(constructor, xi, hi, yi, material);
                         }
-                            
+
                         // Zneg
                         if (TestSide(spec, xi, hi - 1, yi))
                         {
@@ -312,7 +347,7 @@ namespace Client
                 tiles = solidConstructor.tiles.ToArray(),
                 triangles = solidConstructor.triangles.ToArray()
             };
-            chunk_view.mesh.Add(mesh);
+            chunk_view.mesh = mesh;
 
             timer.Stop();
             Debug.Log("Mesh generation finished in " + timer.ElapsedMilliseconds);
@@ -337,7 +372,7 @@ namespace Client
 
         public class View
         {
-            public List<MeshBuilder> mesh = new List<MeshBuilder>();
+            public MeshBuilder mesh;
             // public List<ObjectView> objects = new List<ObjectView>();
         }
 

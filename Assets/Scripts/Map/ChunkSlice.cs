@@ -55,7 +55,7 @@ namespace Test.Map
                 blocks = new ushort[size * size];
             }
 
-            int shift = y * size + x;
+            int shift = y * size + x ;
             ushort oldBlock = blocks[shift];
             blocks[shift] = (ushort) blockId.Id;
             return BlockId.of(oldBlock);

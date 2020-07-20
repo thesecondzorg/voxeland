@@ -46,8 +46,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 95ed30ffbad449c3ab0a6cfaf5692d19, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Material: {fileID: 2100000, guid: b8868cc31d280426bb2df6340fe1443b, type: 2}
+  Material: {fileID: 2100000, guid: bae01e4c96084d547a2da5e38d76e3de, type: 2}
   Notify: 0
+  ready: 0
 --- !u!23 &-8885770151999388053
 MeshRenderer:
   m_ObjectHideFlags: 0
